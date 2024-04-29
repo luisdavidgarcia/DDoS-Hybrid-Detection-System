@@ -12,7 +12,7 @@ fi
 # Function to create conda environment
 create_env() {
     echo "Creating a new conda environment named $ENV_NAME"
-    conda create --name $ENV_NAME python=3.10 -y
+    conda create --name $ENV_NAME python=3.10 tensorflow -y 
     echo "Environment $ENV_NAME created."
 }
 
@@ -21,12 +21,8 @@ install_packages() {
     echo "Activating $ENV_NAME and installing packages..."
     conda activate $ENV_NAME
 
-    # Install TensorFlow; Conda should handle the architecture-specific build
-    conda install -c anaconda tensorflow -y
-
     # Install additional required packages
-    conda install -c anaconda pandas scikit-learn matplotlib -y
-    conda install -c conda-forge spektral pyshark -y # Spektral for graph neural networks, pyshark for pcap file handling
+    conda install -c anaconda pandas scikit-learn matplotlib scapy -y
 
     echo "All packages installed."
 }
