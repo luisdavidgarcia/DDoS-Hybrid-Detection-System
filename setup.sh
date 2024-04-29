@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define environment name
-ENV_NAME="myenv"
+ENV_NAME="ids_dl"
 
 # Check if the operating system is macOS
 if [[ "$OSTYPE" != "darwin"* ]]; then
