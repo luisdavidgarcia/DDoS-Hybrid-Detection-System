@@ -31,4 +31,3 @@ class Conv1DAutoencoder(Model):
         encoded = self.encoder(inputs)
         decoded = self.decoder(encoded)
         return decoded
-
