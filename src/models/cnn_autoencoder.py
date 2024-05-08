@@ -10,18 +10,18 @@ class Conv1DAutoencoder(Model):
 
     def _build_encoder(self):
         encoder = Sequential([
-            Conv1D(16, 3, strides=2, padding='same', activation='relu'),
             Conv1D(32, 3, strides=2, padding='same', activation='relu'),
-            Conv1D(64, 3, strides=2, padding='same', activation='relu')
+            Conv1D(16, 3, strides=2, padding='same', activation='relu'),
+            # Conv1D(8, 3, strides=2, padding='same', activation='relu')
         ], name='encoder')
 
         return encoder
     
     def _build_decoder(self):
         decoder = Sequential([
-            Conv1DTranspose(64, 3, strides=2, padding='same', activation='relu'),
-            Conv1DTranspose(32, 3, strides=2, padding='same', activation='relu'),
+            # Conv1DTranspose(8, 3, strides=1, padding='same', activation='relu'),
             Conv1DTranspose(16, 3, strides=2, padding='same', activation='relu'),
+            Conv1DTranspose(32, 3, strides=2, padding='same', activation='relu'),
             Conv1DTranspose(1, 3, strides=1, padding='same', activation='sigmoid')
         ], name='decoder')
 
