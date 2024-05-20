@@ -1,5 +1,5 @@
 from models.cnn_autoencoder import Conv1DAutoencoder
-from utils.data_preprocessing import prepare_norm_balanced_data
+from utils.only_benign_data_sampling import prepare_norm_balanced_data
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, ReduceLROnPlateau
 from sklearn.metrics import f1_score
@@ -16,6 +16,8 @@ print("Dimensions of preprocessed data:")
 print("x_train_scaled shape:", x_train_scaled.shape)
 print("x_test_scaled shape:", x_test_scaled.shape)
 
+input_dim = x_train_scaled.shape[1]
+
 # Initialize and compile the model
 model = Conv1DAutoencoder()
 opt = Adam(learning_rate=1e-4)
@@ -24,7 +26,7 @@ model.compile(
     loss='mse',
     metrics=['AUC']
 )
-model.build(input_shape=(None, 68, 1))
+model.build(input_shape=(None, input_dim, 1))
 model.encoder.summary()
 model.decoder.summary()
 model.summary()
