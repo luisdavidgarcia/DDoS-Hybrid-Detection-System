@@ -22,7 +22,7 @@ install_packages() {
     conda activate $ENV_NAME
 
     # Install additional required packages
-    conda install -c anaconda pandas scikit-learn matplotlib scapy py-xgboost -y
+    conda install -c anaconda pandas scikit-learn matplotlib scapy py-xgboost scalene -y
 
     echo "All packages installed."
 }

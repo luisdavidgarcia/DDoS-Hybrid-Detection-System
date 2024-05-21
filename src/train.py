@@ -7,7 +7,7 @@ import pandas as pd
 
 # Load and prepare data with labels for the validation set (to include both benign and attack logs)
 print('Loading and preparing data...')
-df = pd.read_csv('datasets/cic_ids_2018/02-15-2018.csv')
+df = pd.read_csv('datasets/cic_ids_2018/cleaned_combined.csv')
 # Use all data instead of only benign to include labels in validation set
 x_train_scaled, x_test_scaled = prepare_norm_balanced_data(df)
 
