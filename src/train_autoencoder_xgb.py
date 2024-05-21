@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 import time
@@ -5,7 +6,7 @@ import json
 import psutil
 import matplotlib.pyplot as plt
 
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, ConfusionMatrixDisplay, roc_auc_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, ConfusionMatrixDisplay
 from xgboost import XGBClassifier
 
 from utils.all_samples_data_preprocessing import prepare_norm_balanced_data
@@ -15,8 +16,14 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Conv1D, MaxPooling1D, UpSampling1D, Dense, Flatten, Reshape
 from tensorflow.keras.callbacks import TensorBoard
 
+# Ensure log directory exists
+log_dir = 'logs'
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
 # Load your dataset
-df = pd.read_csv('datasets/cic_ids_2018/cleaned_combined.csv')
+data_path = "/Users/lucky/GitHub/DDoS-Hybrid-Detection-System/datasets/cic_ids_2018/cleaned_combined.csv"
+df = pd.read_csv(data_path)
 
 # Split data for autoencoder and classifier
 x_train, x_test, y_train, y_test, label_map = prepare_norm_balanced_data(df)
@@ -47,7 +54,6 @@ encoder = Model(input_layer, bottleneck)
 autoencoder.compile(optimizer='adam', loss='mse')
 
 # Set up TensorBoard
-log_dir = 'logs'
 tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1, write_graph=True, write_images=True)
 
 class CustomCallback(tf.keras.callbacks.Callback):
@@ -66,25 +72,17 @@ class CustomCallback(tf.keras.callbacks.Callback):
     def on_epoch_begin(self, epoch, logs=None):
         self.start_time = time.time()
 
-class AUCCallback(tf.keras.callbacks.Callback):
-    def __init__(self, validation_data, log_dir):
-        super().__init__()
-        self.validation_data = validation_data
-        self.log_dir = log_dir
-
-    def on_epoch_end(self, epoch, logs=None):
-        logs = logs or {}
-        x_val, y_val = self.validation_data
-        y_pred = self.model.predict(x_val)
-        auc = roc_auc_score(y_val, y_pred)
-        logs['val_auc'] = auc
-        with tf.summary.create_file_writer(self.log_dir).as_default():
-            tf.summary.scalar('val_auc', auc, step=epoch)
-        print(f"Epoch {epoch+1}: val_auc = {auc:.4f}")
-
 autoencoder_start_time = time.time()
 # Train the autoencoder on both benign and attack samples
-autoencoder.fit(x_train_reshaped, x_train_reshaped, epochs=50, batch_size=256, shuffle=True, validation_split=0.2, callbacks=[tensorboard_callback, CustomCallback(), AUCCallback((x_test_reshaped, y_test), log_dir)])
+autoencoder.fit(
+    x_train_reshaped, 
+    x_train_reshaped, 
+    epochs=50, 
+    batch_size=256, 
+    shuffle=True, 
+    validation_split=0.2, 
+    callbacks=[tensorboard_callback, CustomCallback()]
+)
 autoencoder_end_time = time.time()
 autoencoder_training_time = autoencoder_end_time - autoencoder_start_time
 
@@ -136,8 +134,8 @@ metrics = {
     'precision': precision,
     'recall': recall,
     'f1_score': f1,
-    'training_time': train_time,
-    'prediction_time': predict_time,
+    'xgboost_training_time': train_time,
+    'xgboost_prediction_time': predict_time,
     'autoencoder_training_time': autoencoder_training_time,
     'cpu_usage': psutil.cpu_percent(),
     'memory_usage': psutil.virtual_memory().percent,
@@ -157,4 +155,7 @@ labels = [label_map[label] for label in np.unique(y_test)]
 disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix, display_labels=labels)
 disp.plot(cmap=plt.cm.Blues)
 plt.title("Confusion Matrix")
+
+# Rotate x-axis labels
+plt.xticks(rotation=45)
 plt.show()
