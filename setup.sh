@@ -1,42 +1,30 @@
 #!/bin/bash
 
-# Define environment name
+# Name of the conda environment
 ENV_NAME="ids_dl"
 
-# Check if the operating system is macOS
-if [[ "$OSTYPE" != "darwin"* ]]; then
-  echo "This script is intended only for macOS. Exiting."
-  exit 1
-fi
+# Python version
+PYTHON_VERSION="3.10"
 
-# Function to create conda environment
-create_env() {
-    echo "Creating a new conda environment named $ENV_NAME"
-    conda create --name $ENV_NAME python=3.10 tensorflow -y 
-    echo "Environment $ENV_NAME created."
-}
+# Create and activate the conda environment
+conda create --name $ENV_NAME python=$PYTHON_VERSION -y
+conda activate $ENV_NAME
 
-# Function to install packages
-install_packages() {
-    echo "Activating $ENV_NAME and installing packages..."
-    conda activate $ENV_NAME
+# Install Django and Django REST framework
+conda install -c conda-forge django djangorestframework -y
 
-    # Install additional required packages
-    conda install -c anaconda pandas scikit-learn matplotlib scapy py-xgboost scalene -y
+# Install TensorFlow
+conda install -c conda-forge tensorflow -y
 
-    echo "All packages installed."
-}
+# Install scikit-learn and XGBoost
+conda install -c conda-forge scikit-learn xgboost -y
 
-# Check for Conda and set up the environment
-if ! command -v conda &> /dev/null
-then
-    echo "Conda could not be found. Please install Miniconda or Anaconda first."
-    exit
-else
-    echo "Conda is installed."
-    create_env
-    install_packages
-fi
+# Install additional libraries
+conda install -c conda-forge numpy pandas matplotlib -y
 
-echo "Setup completed. Use 'conda activate $ENV_NAME' to activate the environment."
+# Install Ollama client if available
+pip install ollama
 
+# Output success message
+echo "Conda environment '$ENV_NAME' has been set up with all dependencies."
+echo "Activate the environment using: conda activate $ENV_NAME"
