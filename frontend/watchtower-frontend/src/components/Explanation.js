@@ -7,10 +7,11 @@ const Explanation = ({ prediction }) => {
 
   const getExplanation = async () => {
     try {
-      const response = await axios.post('https://api.ollama.com/explain', { prediction });
+      const response = await axios.post('http://127.0.0.1:8000/api/get_explanation/', { prediction });
       setExplanation(response.data.explanation);
     } catch (error) {
       console.error("Error fetching explanation:", error);
+      setExplanation('Failed to get explanation');
     }
   };
 

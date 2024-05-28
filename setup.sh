@@ -29,35 +29,37 @@ conda install -c conda-forge scikit-learn xgboost -y
 # Install additional libraries
 conda install -c conda-forge numpy pandas matplotlib -y
 
-# Install Ollama client if available
+# Install Django CORS headers
+pip install django-cors-headers
+
+# Install Ollama client
 pip install ollama
 
-# # Create the Django project and app in the backend directory
-# mkdir -p backend
-# cd backend
-# django-admin startproject $DJANGO_PROJECT_NAME
-# cd $DJANGO_PROJECT_NAME
-# python manage.py startapp $DJANGO_APP_NAME
+# Navigate to the backend directory
+cd backend/$DJANGO_PROJECT_NAME
 
-# # Update Django settings to include the new app and Django REST framework
-# SETTINGS_FILE="$DJANGO_PROJECT_NAME/settings.py"
-# sed -i "" "s/INSTALLED_APPS = \[/INSTALLED_APPS = \[\n    '$DJANGO_APP_NAME',\n    'rest_framework',/" $SETTINGS_FILE
+# Update Django settings to include the new app and Django REST framework
+SETTINGS_FILE="settings.py"
+if ! grep -q "'$DJANGO_APP_NAME'" $SETTINGS_FILE; then
+    sed -i "" "s/INSTALLED_APPS = \[/INSTALLED_APPS = \[\n    '$DJANGO_APP_NAME',\n    'corsheaders',\n    'rest_framework',/" $SETTINGS_FILE
+    echo -e "\n# CORS settings\nCORS_ALLOW_ALL_ORIGINS = True\n" >> $SETTINGS_FILE
+fi
 
-# # Create initial Django migration
-# python manage.py makemigrations
-# python manage.py migrate
+# Create initial Django migration
+python manage.py makemigrations
+python manage.py migrate
 
-# # Go back to the root directory
-# cd ../../
+# Navigate back to the root directory
+cd ../../
 
-# # Create the React project in the frontend directory
-# mkdir -p frontend
-# cd frontend
-# npx create-react-app $REACT_APP_NAME
-# cd $REACT_APP_NAME
+# Navigate to the frontend directory
+cd frontend/$REACT_APP_NAME
+
+# Install React dependencies
+npm install
 
 # Output success message
 echo "Conda environment '$ENV_NAME' has been set up with all dependencies."
-echo "Django project '$DJANGO_PROJECT_NAME' with app '$DJANGO_APP_NAME' has been created."
-echo "React project '$REACT_APP_NAME' has been created."
+echo "Django project '$DJANGO_PROJECT_NAME' with app '$DJANGO_APP_NAME' has been configured."
+echo "React project '$REACT_APP_NAME' has been configured."
 echo "Activate the environment using: conda activate $ENV_NAME"

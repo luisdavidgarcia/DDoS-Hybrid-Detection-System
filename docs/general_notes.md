@@ -56,3 +56,7 @@ lsof -i -P -n | grep LISTEN
     - Download link: [link](http://205.174.165.80/CICDataset/CICDDoS2019/Dataset/)
 3. CICIDS 2019: [CICIDS 2019](https://www.unb.ca/cic/datasets/ids-2019.html)
     - Download link: [link](http://205.174.165.80/CICDataset/CIC-IDS-2019/Dataset/)
+
+## Learning about OLLAMA:
+
+Go the python repo: [Repo](https://github.com/ollama/ollama-python)
