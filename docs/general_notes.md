@@ -47,3 +47,12 @@ For MacOS:
 ```bash
 lsof -i -P -n | grep LISTEN
 ```
+
+## Downloading Datasets
+
+1. CICIDS 2017: [CICIDS 2017](https://www.unb.ca/cic/datasets/ids-2017.html)
+    - Download link: [link](http://205.174.165.80/CICDataset/CIC-IDS-2017/Dataset/)
+2. CICIDS 2018: [CICIDS 2018](https://www.unb.ca/cic/datasets/ids-2018.html)
+    - Download link: [link](http://205.174.165.80/CICDataset/CICDDoS2019/Dataset/)
+3. CICIDS 2019: [CICIDS 2019](https://www.unb.ca/cic/datasets/ids-2019.html)
+    - Download link: [link](http://205.174.165.80/CICDataset/CIC-IDS-2019/Dataset/)
