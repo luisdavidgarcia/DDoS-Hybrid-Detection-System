@@ -12,9 +12,9 @@ from xgboost import XGBClassifier
 from utils.all_samples_data_preprocessing import prepare_norm_balanced_data
 
 import tensorflow as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Conv1D, MaxPooling1D, UpSampling1D, Dense, Flatten, Reshape
-from tensorflow.keras.callbacks import TensorBoard
+# from tensorflow.keras.models import Model
+# from tensorflow.keras.layers import Input, Conv1D, MaxPooling1D, UpSampling1D, Dense, Flatten, Reshape
+# from tensorflow.keras.callbacks import TensorBoard
 
 # Ensure log directory exists
 log_dir = 'logs'
@@ -34,29 +34,29 @@ input_dim = x_train.shape[1]
 x_train_reshaped = x_train.values.reshape((x_train.shape[0], x_train.shape[1], 1))
 x_test_reshaped = x_test.values.reshape((x_test.shape[0], x_test.shape[1], 1))
 
-input_layer = Input(shape=(input_dim, 1))
-x = Conv1D(32, 3, activation='relu', padding='same')(input_layer)
-x = MaxPooling1D(2, padding='same')(x)
-x = Conv1D(16, 3, activation='relu', padding='same')(x)
-x = MaxPooling1D(2, padding='same')(x)
-x = Flatten()(x)
-bottleneck = Dense(16, activation='relu')(x)
+input_layer = tf.keras.layers.Input(shape=(input_dim, 1))
+x = tf.keras.layers.Conv1D(32, 3, activation='relu', padding='same')(input_layer)
+x = tf.keras.layers.MaxPooling1D(2, padding='same')(x)
+x = tf.keras.layers.Conv1D(16, 3, activation='relu', padding='same')(x)
+x = tf.keras.layers.MaxPooling1D(2, padding='same')(x)
+x = tf.keras.layers.Flatten()(x)
+bottleneck = tf.keras.layers.Dense(16, activation='relu')(x)
 
-x = Dense((input_dim // 4) * 16, activation='relu')(bottleneck)
-x = Reshape(((input_dim // 4), 16))(x)
-x = UpSampling1D(2)(x)
-x = Conv1D(16, 3, activation='relu', padding='same')(x)
-x = UpSampling1D(2)(x)
-output_layer = Conv1D(1, 3, activation='sigmoid', padding='same')(x)
+x = tf.keras.layers.Dense((input_dim // 4) * 16, activation='relu')(bottleneck)
+x = tf.keras.layers.Reshape(((input_dim // 4), 16))(x)
+x = tf.keras.layers.UpSampling1D(2)(x)
+x = tf.keras.layers.Conv1D(16, 3, activation='relu', padding='same')(x)
+x = tf.keras.layers.UpSampling1D(2)(x)
+output_layer = tf.keras.layers.Conv1D(1, 3, activation='sigmoid', padding='same')(x)
 
-autoencoder = Model(input_layer, output_layer)
-encoder = Model(input_layer, bottleneck)
+autoencoder = tf.keras.models.Model(input_layer, output_layer)
+encoder = tf.keras.models.Model(input_layer, bottleneck)
 autoencoder.compile(optimizer='adam', loss='mse')
 
 print(autoencoder.summary())
 
 # Set up TensorBoard
-tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1, write_graph=True, write_images=True)
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1, write_graph=True, write_images=True)
 
 class CustomCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
