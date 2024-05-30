@@ -27,7 +27,7 @@ conda install -c conda-forge tensorflow -y
 conda install -c conda-forge scikit-learn xgboost -y
 
 # Install additional libraries
-conda install -c conda-forge numpy pandas matplotlib imbalanced-learn -y
+conda install -c conda-forge numpy pandas matplotlib imbalanced-learn psutil -y
 
 # Install Django CORS headers
 pip install django-cors-headers
