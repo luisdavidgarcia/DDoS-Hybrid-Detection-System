@@ -53,6 +53,8 @@ autoencoder = Model(input_layer, output_layer)
 encoder = Model(input_layer, bottleneck)
 autoencoder.compile(optimizer='adam', loss='mse')
 
+print(autoencoder.summary())
+
 # Set up TensorBoard
 tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1, write_graph=True, write_images=True)
 
