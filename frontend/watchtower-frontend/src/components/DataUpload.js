@@ -23,7 +23,7 @@ const DataUpload = () => {
   return (
     <div>
       <h2>Upload Data</h2>
-      <input type="file" onChange={handleFileChange} />
+      <input type="file" onChange={handleFileChange} accept=".csv"/>
       <button onClick={handleUpload}>Upload</button>
     </div>
   );
