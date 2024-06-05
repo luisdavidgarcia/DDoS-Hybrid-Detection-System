@@ -359,3 +359,6 @@ bower_components
 psd
 thumb
 sketch
+
+*.h5
+*.keras
