@@ -20,7 +20,7 @@ def split_train_test_data(df, target_column, test_size=0.2):
 
     return X_train, X_test, y_train, y_test
 
-def encode_X_train_test_data(X_train, X_test, numerical_features, categorical_features):
+def scale_X_train_test_data(X_train, X_test, numerical_features, categorical_features):
     numerical_transformer = Pipeline(steps=[
         ('scaler', StandardScaler())
     ])
