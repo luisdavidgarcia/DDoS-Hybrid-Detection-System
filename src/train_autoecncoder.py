@@ -1,5 +1,5 @@
 from models.cnn_autoencoder import Conv1DAutoencoder
-from utils.only_benign_data_sampling import prepare_norm_balanced_data
+from src.utils.old_versions.only_benign_data_sampling import prepare_norm_balanced_data
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, ReduceLROnPlateau
 from sklearn.metrics import f1_score

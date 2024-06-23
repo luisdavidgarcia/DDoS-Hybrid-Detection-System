@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, ConfusionMatrixDisplay
 from xgboost import XGBClassifier
 
-from utils.all_samples_data_preprocessing import prepare_norm_balanced_data
+from src.utils.old_versions.all_samples_data_preprocessing import prepare_norm_balanced_data
 
 import tensorflow as tf
 # from tensorflow.keras.models import Model
