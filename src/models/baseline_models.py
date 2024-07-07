@@ -1,3 +1,11 @@
+# src/models/baseline_models.py
+
+import sys
+import os
+
+# Add the root directory of the project to the sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from xgboost import XGBClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
@@ -20,7 +28,7 @@ from src.utils.model_evaluation import evaluate_model
 from src.utils.model_evaluation import save_map_of_model_metrics
 
 # Acquire the dataset
-dataset_path = 'datasets/cic_ids_2018/combined.csv'
+dataset_path = 'datasets/cic_ids_2018/cicids2018-ddos.csv'
 df = pd.read_csv(dataset_path)
 data_preview(df)
 
@@ -32,12 +40,18 @@ df.drop('Timestamp', axis=1, inplace=True)
 X_train, X_test, y_train, y_test = split_train_test_data(df, 'Label')
 
 # Feature Engineering
+print("Selecting top features...")
 top_features = select_top_features(X_train, y_train, k=10, verbose=True)
-X_train_reduced = top_features.transform(X_train)
-X_test_reduced = top_features.transform(X_test)
 
-# Scaling and Encoding
-X_train_scaled, X_test_scaled, scaler = scale_X_train_test_data(X_train_reduced, X_test_reduced, X_train.columns)
+feature_names = top_features.get_feature_names_out()
+print(feature_names)
+
+# Converting the reduced NumPy arrays into Pandas DataFrames
+X_train_reduced = pd.DataFrame(X_train, columns=feature_names)
+X_test_reduced = pd.DataFrame(X_test, columns=feature_names)
+
+# # Scaling and Encoding
+X_train_scaled, X_test_scaled, scaler = scale_X_train_test_data(X_train_reduced, X_test_reduced, X_train_reduced.columns)
 
 y_train_encoded, y_test_encoded, le = encode_y_train_test_data(y_train, y_test)
 
@@ -49,14 +63,15 @@ models = {
         eval_metric='mlogloss',
         use_label_encoder=False
     ),
-    "Logistic Regression": LogisticRegression(max_iter=2000),
-    "Random Forest": RandomForestClassifier(n_estimators=100),
-    "Decision Tree": DecisionTreeClassifier(),
+    # "Logistic Regression": LogisticRegression(max_iter=2000),
+    # "Random Forest": RandomForestClassifier(n_estimators=100),
+    # "Decision Tree": DecisionTreeClassifier(),
 }
 
 # Train and evaluate each model
 results = {}
 
+print("Training and evaluating models...")
 for name, model in models.items():
     model, train_time = train_model(X_train_scaled, y_train_encoded, model)
     y_pred, predict_time = evaluate_model(X_test_scaled, model)
