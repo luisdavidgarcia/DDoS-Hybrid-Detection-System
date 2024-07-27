@@ -362,3 +362,5 @@ sketch
 
 *.h5
 *.keras
+docker/certificates/server.crt
+docker/certificates/server.key

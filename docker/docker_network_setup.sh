@@ -19,7 +19,7 @@ echo "Building Apache server container..."
 cat <<EOF > Dockerfile.apache
 FROM httpd:2.4
 COPY httpd-ssl.conf /usr/local/apache2/conf/extra/httpd-ssl.conf
-COPY certificates/ /usr/local/apache2/conf/certificates/
+COPY ~/certificates/ /usr/local/apache2/conf/certificates/
 RUN echo "Include conf/extra/httpd-ssl.conf" >> /usr/local/apache2/conf/httpd.conf
 EXPOSE 80 443
 EOF
