@@ -1,0 +1,138 @@
+version: '3'
+services:
+  # Internal Web Server (172.18.1.2)
+  nginx_web:
+    image: nginx:latest
+    networks:
+      internal_net:
+        ipv4_address: 172.18.1.2
+
+  # Attacker Containers (172.18.2.X)
+  attacker1:
+    image: alpine
+    command: sh -c "while true; do hping3 -S -p 80 172.18.1.2; sleep 1; done"  # SYN Flood Attack
+    networks:
+      attacker_net:
+        ipv4_address: 172.18.2.2
+
+  attacker2:
+    image: alpine
+    command: sh -c "while true; do hping3 --icmp 172.18.1.2; sleep 1; done"  # ICMP Flood Attack
+    networks:
+      attacker_net:
+        ipv4_address: 172.18.2.3
+
+  attacker3:
+    image: python:3.8-slim
+    command: sh -c "pip install slowloris && slowloris 172.18.1.2"  # Slowloris Attack
+    networks:
+      attacker_net:
+        ipv4_address: 172.18.2.4
+
+  # Monitoring Containers (172.18.3.X)
+  suricata:
+    image: jasonish/suricata
+    networks:
+      monitoring_net:
+        ipv4_address: 172.18.3.2
+    cap_add:
+      - NET_ADMIN  # Required for network monitoring
+    command: suricata -i eth0 -c /etc/suricata/suricata.yaml
+    volumes:
+      - ./suricata/suricata.yaml:/etc/suricata/suricata.yaml  # Mount custom Suricata config file
+      - ./logs:/var/log/suricata  # Mount logs directory for flow and alert logs
+
+  # Machine Learning Model Containers for DDoS Detection
+  xgboost_model:
+    image: tensorflow/tensorflow:latest
+    networks:
+      monitoring_net:
+        ipv4_address: 172.18.3.4
+    volumes:
+      - ./models/xgb:/models
+    command: sh -c "python3 /models/deploy_xgb.py"
+
+  lr_model:
+    image: tensorflow/tensorflow:latest
+    networks:
+      monitoring_net:
+        ipv4_address: 172.18.3.5
+    volumes:
+      - ./models/lr:/models
+    command: sh -c "python3 /models/deploy_lr.py"
+
+  dt_model:
+    image: tensorflow/tensorflow:latest
+    networks:
+      monitoring_net:
+        ipv4_address: 172.18.3.6
+    volumes:
+      - ./models/dt:/models
+    command: sh -c "python3 /models/deploy_dt.py"
+
+  rf_model:
+    image: tensorflow/tensorflow:latest
+    networks:
+      monitoring_net:
+        ipv4_address: 172.18.3.7
+    volumes:
+      - ./models/rf:/models
+    command: sh -c "python3 /models/deploy_rf.py"
+
+  ae_xgb_model:
+    image: tensorflow/tensorflow:latest
+    networks:
+      monitoring_net:
+        ipv4_address: 172.18.3.8
+    volumes:
+      - ./models/ae_xgb:/models
+    command: sh -c "python3 /models/deploy_ae_xgb.py"
+
+  cnn_lstm_model:
+    image: tensorflow/tensorflow:latest
+    networks:
+      monitoring_net:
+        ipv4_address: 172.18.3.9
+    volumes:
+      - ./models/cnn_lstm:/models
+    command: sh -c "python3 /models/deploy_cnn_lstm.py"
+
+  # Legitimate Traffic Containers (172.18.4.X)
+  legit1:
+    image: alpine
+    command: sh -c "while true; do wget -qO- 172.18.1.2; sleep 5; done"  # Legitimate traffic simulation
+    networks:
+      legit_net:
+        ipv4_address: 172.18.4.2
+
+  legit2:
+    image: alpine
+    command: sh -c "while true; do wget -qO- 172.18.1.2; sleep 5; done"  # Legitimate traffic simulation
+    networks:
+      legit_net:
+        ipv4_address: 172.18.4.3
+
+networks:
+  internal_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.1.0/24
+
+  attacker_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.2.0/24
+
+  monitoring_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.3.0/24
+
+  legit_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.4.0/24
