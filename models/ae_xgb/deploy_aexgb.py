@@ -1,14 +1,23 @@
 import json
 import numpy as np
 import tensorflow as tf
+import joblib
 import logging
 from collections import defaultdict
 
 # Configure logging
-logging.basicConfig(filename='cnn_lstm_predictions.log', level=logging.INFO, format='%(asctime)s - %(message)s')
+logging.basicConfig(filename='ae_xgb_predictions.log', level=logging.INFO, format='%(asctime)s - %(message)s')
 
-# Load the CNN-LSTM model
-cnn_lstm_model = tf.keras.models.load_model('/models/cnn_lstm_model_binary.keras')
+# Load the AE-XGBoost model
+ae_xgb_model = joblib.load('/models/xgboost_binary_model.joblib')
+
+# Load the encoder model
+encoder_model = tf.keras.models.load_model('/models/encoder_model.keras')
+
+# Load the LabelEncoders for categorical features
+service_encoder = joblib.load('service_encoder.joblib')
+flag_encoder = joblib.load('flag_encoder.joblib')
+protocol_encoder = joblib.load('protocol_encoder.joblib')
 
 # Initialize data structures to track `src_bytes` and `diff_srv_rate`
 src_bytes_dict = defaultdict(int)
@@ -35,24 +44,35 @@ def map_tcp_flags(tcp_flags):
     else:
         return 'OTH'
 
-# Function to preprocess the features for CNN-LSTM model
-def preprocess_features(service, flag, src_bytes, diff_srv_rate):
-    # Create a feature array in the shape (1, 4, 1) for a single sample for keras models
-    features = np.array([[service, flag, src_bytes, diff_srv_rate]]).reshape(1, 4, 1)
-    return features
+# Function to preprocess and encode the features
+def preprocess_and_encode_features(service, protocol, flag, src_bytes, diff_srv_rate):
+    # Encode categorical features with pre-fitted encoders
+    encoded_service = service_encoder.transform([service])[0] if service in service_encoder.classes_ else -1
+    encoded_protocol = protocol_encoder.transform([protocol])[0] if protocol in protocol_encoder.classes_ else -1
+    encoded_flag = flag_encoder.transform([flag])[0] if flag in flag_encoder.classes_ else -1
+
+    # Create a feature array
+    features = np.array([[encoded_service, encoded_protocol, encoded_flag, src_bytes, diff_srv_rate]])
+
+    # Reshape and encode the features using the trained encoder model
+    features_reshaped = features.reshape((features.shape[0], features.shape[1], 1))
+    encoded_features = encoder_model.predict(features_reshaped)
+
+    # Flatten the encoded data for XGBoost
+    encoded_features_flat = encoded_features.reshape((encoded_features.shape[0], -1))
+    return encoded_features_flat
 
 # Function to process batches and make predictions
 def process_batch():
     global batch_data
 
-    # Convert batches to numpy arrays for prediction
-    keras_batch = np.array(batch_data).reshape(-1, 4, 1)  # Shape for CNN-LSTM: (batch_size, 4, 1)
+    # Process and encode the batch data
+    encoded_batch = np.vstack([preprocess_and_encode_features(*data) for data in batch_data])
 
-    # Predict using the CNN-LSTM model
-    if len(keras_batch) > 0:
-        keras_predictions = cnn_lstm_model.predict(keras_batch)
-        # Log predictions to file
-        logging.info(f"CNN-LSTM Batch Predictions: {keras_predictions}")
+    # Predict using the AE-XGBoost model
+    if len(encoded_batch) > 0:
+        predictions = ae_xgb_model.predict(encoded_batch)
+        logging.info(f"AE-XGBoost Batch Predictions: {predictions}")
 
     # Clear the batch data after predictions
     batch_data.clear()
@@ -66,30 +86,22 @@ def process_log_entry(log_entry):
     dest_port = log_entry.get('dest_port')
     proto = log_entry.get('proto')
     flow = log_entry.get('flow', {})
-    tcp = log_entry.get('tcp', {})  # TCP flags
+    tcp = log_entry.get('tcp', {})
     bytes_toserver = flow.get('bytes_toserver', 0)
 
-    # Extract service (based on destination port, e.g., 80 for HTTP)
+    # Extract and map features
     service = dest_port
-    
-    # Extract src_bytes (bytes sent by the source IP)
     src_bytes = bytes_toserver
+    flag = map_tcp_flags(tcp)
 
-    # Extract TCP flags and map them to your dataset's flags
-    flag = map_tcp_flags(tcp)  # Map Suricata TCP flags to your flag set
-    
-    # Track diff_srv_rate (distinct services accessed by the source IP)
+    # Track and store network statistics
     if src_ip and dest_port:
         diff_srv_rate_dict[src_ip].add(dest_port)
-    
-    # Store src_bytes for the current source IP
     src_bytes_dict[src_ip] += src_bytes
-    
-    # Get `diff_srv_rate` as the number of distinct services accessed by the src_ip
     diff_srv_rate = len(diff_srv_rate_dict[src_ip])
 
-    # Preprocess features and accumulate batch data
-    batch_data.append([service, flag, src_bytes, diff_srv_rate])
+    # Accumulate preprocessed and encoded batch data
+    batch_data.append((service, proto, flag, src_bytes, diff_srv_rate))
 
     # Check if batch is full and process it
     if len(batch_data) >= batch_size:
@@ -100,7 +112,7 @@ def stream_suricata_logs(log_file_path='/var/log/suricata/eve.json'):
     with open(log_file_path, 'r') as log_file:
         log_file.seek(0, 2)  # Move to the end of the file
         while True:
-            line = log_file.readline()  # Read new lines as they appear
+            line = log_file.readline()
             if line:
                 try:
                     log_entry = json.loads(line)

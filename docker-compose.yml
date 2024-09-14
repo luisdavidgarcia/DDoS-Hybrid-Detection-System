@@ -49,7 +49,7 @@ services:
       monitoring_net:
         ipv4_address: 172.18.3.4
     volumes:
-      - ./models/xgb:/models
+      - ./src/models/xgb:/models
     command: sh -c "python3 /models/deploy_xgb.py"
 
   lr_model:
@@ -58,7 +58,7 @@ services:
       monitoring_net:
         ipv4_address: 172.18.3.5
     volumes:
-      - ./models/lr:/models
+      - ./src/models/lr:/models
     command: sh -c "python3 /models/deploy_lr.py"
 
   dt_model:
@@ -67,7 +67,7 @@ services:
       monitoring_net:
         ipv4_address: 172.18.3.6
     volumes:
-      - ./models/dt:/models
+      - ./src/models/dt:/models
     command: sh -c "python3 /models/deploy_dt.py"
 
   rf_model:
@@ -76,7 +76,7 @@ services:
       monitoring_net:
         ipv4_address: 172.18.3.7
     volumes:
-      - ./models/rf:/models
+      - ./src/models/rf:/models
     command: sh -c "python3 /models/deploy_rf.py"
 
   ae_xgb_model:
@@ -85,7 +85,7 @@ services:
       monitoring_net:
         ipv4_address: 172.18.3.8
     volumes:
-      - ./models/ae_xgb:/models
+      - ./src/models/ae_xgb:/models
     command: sh -c "python3 /models/deploy_ae_xgb.py"
 
   cnn_lstm_model:
@@ -94,7 +94,7 @@ services:
       monitoring_net:
         ipv4_address: 172.18.3.9
     volumes:
-      - ./models/cnn_lstm:/models
+      - ./src/models/cnn_lstm:/models
     command: sh -c "python3 /models/deploy_cnn_lstm.py"
 
   # Legitimate Traffic Containers (172.18.4.X)

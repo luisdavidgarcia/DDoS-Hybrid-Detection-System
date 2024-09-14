@@ -1,0 +1,103 @@
+# Suricata Configuration File for DDoS Testbed
+
+# General configuration
+vars:
+  # Define home net to be the internal subnet (adjust if needed)
+  address-groups:
+    HOME_NET: "[172.18.1.0/24, 172.18.2.0/24, 172.18.3.0/24, 172.18.4.0/24]"
+    EXTERNAL_NET: "!$HOME_NET"
+
+default-log-dir: /var/log/suricata  # Where the logs will be stored
+
+# Capture interface
+af-packet:
+  - interface: eth0
+    cluster-type: cluster_flow
+    cluster-id: 99
+    defrag: yes
+    use-mmap: yes
+
+# Logging
+logging:
+  outputs:
+    - file:
+        enabled: yes
+        filename: /var/log/suricata/suricata.log
+        append: yes
+
+    - eve-log:
+        enabled: yes
+        filetype: regular
+        filename: /var/log/suricata/eve.json
+        community-id: yes
+        types:
+          - alert:
+              metadata: yes
+          - http:
+              extended: yes
+          - dns:
+              query: yes
+          - tls:
+              extended: yes
+          - drop
+          - fileinfo
+          - ssh
+          - stats:
+              totals: yes
+              threads: yes
+          - flow
+
+# Alerting based on Suricata's default rules
+rule-files:
+  - /etc/suricata/rules/suricata.rules  # Default Suricata rules
+
+# Default detection rules
+outputs:
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: eve.json
+      community-id: yes
+      xff:
+        enabled: no
+      types:
+        - alert:
+            metadata: yes
+        - tls:
+            extended: yes
+        - http:
+            extended: yes
+        - dns:
+            query: yes
+        - flow
+
+# CPU configuration
+threading:
+  set-cpu-affinity: yes
+  cpu-affinity:
+    - management-cpu-set:
+        cpu: [ 0 ]  # Use core 0 for management threads
+
+    - receive-cpu-set:
+        cpu: [ "all" ]  # Use all available CPUs for packet threads
+
+  detect-thread-ratio: 1.0
+
+# Threshold configuration to avoid overwhelming logs
+threshold:
+  limit: 50
+  track: by_src
+  type: limit
+
+# Suricata DDoS detection rules (you can add more rules here for specific attack patterns)
+custom-rules:
+  - alert tcp $EXTERNAL_NET any -> $HOME_NET 80 (msg:"Potential SYN Flood"; flags:S; threshold: type both, track by_src, count 20, seconds 10; sid:1000001;)
+  - alert icmp $EXTERNAL_NET any -> $HOME_NET any (msg:"Potential ICMP Flood"; threshold: type both, track by_src, count 50, seconds 5; sid:1000002;)
+  - alert http $EXTERNAL_NET any -> $HOME_NET 80 (msg:"Slowloris HTTP Flood"; flow:established,to_server; content:"GET"; nocase; threshold: type both, track by_src, count 100, seconds 10; sid:1000003;)
+
+# Performance tuning
+detect-engine:
+  - profile: high
+    custom-values:
+      max-pending-packets: 10000
+      prealloc-packets: 10000
