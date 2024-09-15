@@ -5,74 +5,59 @@
 
 # General configuration
 vars:
-  # Define home net to be the internal subnet (adjust if needed)
+  # Define home net to be the internal subnet (adjusted to 172.19.5.0/24)
   address-groups:
-    HOME_NET: "[172.19.1.0/24, 172.19.2.0/24, 172.19.3.0/24, 172.19.4.0/24]"
-    EXTERNAL_NET: "!$HOME_NET"
+    HOME_NET: "[172.19.5.0/24]"
+    EXTERNAL_NET: "$HOME_NET"
 
 default-log-dir: /var/log/suricata  # Where the logs will be stored
 
-# Capture interface
+# Capture interface - using AF_PACKET for live capture
 af-packet:
   - interface: eth0
+    use-ipv4: yes          # Ensure IPv4 is used
+    use-ipv6: no           # Disable IPv6
     cluster-type: cluster_flow
     cluster-id: 99
     defrag: yes
     use-mmap: yes
 
-# Logging
+# Logging Configuration for Suricata's internal logs
 logging:
+  default-log-level: info
   outputs:
     - file:
         enabled: yes
         filename: /var/log/suricata/suricata.log
         append: yes
 
-    - eve-log:
-        enabled: yes
-        filetype: regular
-        filename: /var/log/suricata/eve.json
-        community-id: yes
-        types:
-          - alert:
-              metadata: yes
-          - http:
-              extended: yes
-          - dns:
-              query: yes
-          - tls:
-              extended: yes
-          - drop
-          - fileinfo
-          - ssh
-          - stats:
-              totals: yes
-              threads: yes
-          - flow
-
-# Alerting based on Suricata's default rules
-rule-files:
-  - /etc/suricata/rules/suricata.rules  # Default Suricata rules
-
-# Default detection rules
+# Outputs Configuration for event logs (e.g., eve.json)
 outputs:
   - eve-log:
       enabled: yes
       filetype: regular
-      filename: eve.json
+      filename: /var/log/suricata/eve.json
       community-id: yes
-      xff:
-        enabled: no
       types:
         - alert:
             metadata: yes
-        - tls:
-            extended: yes
         - http:
             extended: yes
         - dns:
             query: yes
+        - tls:
+            extended: yes
+        - drop
+        - fileinfo
+        - ssh
+        - stats:
+            totals: yes
+            threads: yes
         - flow
+
+# Alerting based on Suricata's default rules
+rule-files:
+  - suricata.rules  # Reference to rules file (relative path within /etc/suricata/rules/)
 
 # CPU configuration
 threading:
@@ -92,13 +77,7 @@ threshold:
   track: by_src
   type: limit
 
-# Suricata DDoS detection rules (you can add more rules here for specific attack patterns)
-custom-rules:
-  - alert tcp $EXTERNAL_NET any -> $HOME_NET 80 (msg:"Potential SYN Flood"; flags:S; threshold: type both, track by_src, count 20, seconds 10; sid:1000001;)
-  - alert icmp $EXTERNAL_NET any -> $HOME_NET any (msg:"Potential ICMP Flood"; threshold: type both, track by_src, count 50, seconds 5; sid:1000002;)
-  - alert http $EXTERNAL_NET any -> $HOME_NET 80 (msg:"Slowloris HTTP Flood"; flow:established,to_server; content:"GET"; nocase; threshold: type both, track by_src, count 100, seconds 10; sid:1000003;)
-
-# Performance tuning
+# Performance tuning for packet processing
 detect-engine:
   - profile: high
     custom-values:

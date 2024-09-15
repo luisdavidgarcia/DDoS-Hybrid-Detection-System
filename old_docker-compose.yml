@@ -1,0 +1,156 @@
+services:
+  # Internal Web Server (172.19.1.2)
+  nginx_web:
+    image: nginx:latest
+    platform: linux/amd64
+    networks:
+      internal_net:
+        ipv4_address: 172.19.1.2
+
+  # Attacker Containers (172.19.2.X)
+  attacker1:
+    image: debian
+    platform: linux/amd64
+    command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 -S -p 80 172.19.1.2; sleep 1; done"  # SYN Flood Attack
+    networks:
+      attacker_net:
+        ipv4_address: 172.19.2.2
+
+  attacker2:
+    image: debian
+    platform: linux/amd64
+    command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --icmp 172.19.1.2; sleep 1; done"  # ICMP Flood Attack
+    networks:
+      attacker_net:
+        ipv4_address: 172.19.2.3
+
+  attacker3:
+    image: python:3.8-slim
+    platform: linux/amd64
+    command: sh -c "pip install slowloris && slowloris 172.19.1.2"  # Slowloris Attack
+    networks:
+      attacker_net:
+        ipv4_address: 172.19.2.4
+
+  # Monitoring Containers (172.19.3.X)
+  suricata:
+    image: jasonish/suricata
+    platform: linux/amd64
+    networks:
+      monitoring_net:
+        ipv4_address: 172.19.3.2
+    cap_add:
+      - NET_ADMIN  # Required for network monitoring
+    command: suricata -i eth0 -c /etc/suricata/suricata.yaml
+    volumes:
+      - ./suricata/suricata.yaml:/etc/suricata/suricata.yaml  # Mount custom Suricata config file
+      - ./logs:/var/log/suricata  # Mount logs directory for flow and alert logs
+
+  # Machine Learning Model Containers for DDoS Detection
+  xgboost_model:
+    image: tensorflow/tensorflow:latest
+    platform: linux/amd64
+    networks:
+      monitoring_net:
+        ipv4_address: 172.19.3.4
+    volumes:
+      - ./models/xgb:/models
+      - ./logs:/var/log/suricata  # Share logs directory
+    command: sh -c "pip install scikit-learn joblib numpy xgboost && python3 /models/deploy_xgb.py"
+
+  lr_model:
+    image: tensorflow/tensorflow:latest
+    platform: linux/amd64
+    networks:
+      monitoring_net:
+        ipv4_address: 172.19.3.5
+    volumes:
+      - ./models/lr:/models
+      - ./logs:/var/log/suricata  # Share logs directory
+    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_lr.py"
+
+  dt_model:
+    image: tensorflow/tensorflow:latest
+    platform: linux/amd64
+    networks:
+      monitoring_net:
+        ipv4_address: 172.19.3.6
+    volumes:
+      - ./models/dt:/models
+      - ./logs:/var/log/suricata  # Share logs directory
+    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_dt.py"
+
+  rf_model:
+    image: tensorflow/tensorflow:latest
+    platform: linux/amd64
+    networks:
+      monitoring_net:
+        ipv4_address: 172.19.3.7
+    volumes:
+      - ./models/rf:/models
+      - ./logs:/var/log/suricata  # Share logs directory
+    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_rf.py"
+
+  ae_xgb_model:
+    image: tensorflow/tensorflow:latest
+    platform: linux/amd64
+    networks:
+      monitoring_net:
+        ipv4_address: 172.19.3.8
+    volumes:
+      - ./models/ae_xgb:/models
+      - ./logs:/var/log/suricata  # Share logs directory
+    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_aexgb.py"
+
+  cnn_lstm_model:
+    image: tensorflow/tensorflow:latest
+    platform: linux/amd64
+    networks:
+      monitoring_net:
+        ipv4_address: 172.19.3.9
+    volumes:
+      - ./models/cnn_lstm:/models
+      - ./logs:/var/log/suricata  # Share logs directory
+    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_cnn_lstm.py"
+
+  # Legitimate Traffic Containers (172.19.4.X)
+  legit1:
+    image: alpine
+    platform: linux/amd64
+    command: sh -c "while true; do wget -qO- 172.19.1.2; sleep 5; done"  # Legitimate traffic simulation
+    networks:
+      legit_net:
+        ipv4_address: 172.19.4.2
+
+  legit2:
+    image: alpine
+    platform: linux/amd64
+    command: sh -c "while true; do wget -qO- 172.19.1.2; sleep 5; done"  # Legitimate traffic simulation
+    networks:
+      legit_net:
+        ipv4_address: 172.19.4.3
+
+networks:
+  internal_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.19.1.0/24
+
+  attacker_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.19.2.0/24
+
+  monitoring_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.19.3.0/24
+
+  legit_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.19.4.0/24
