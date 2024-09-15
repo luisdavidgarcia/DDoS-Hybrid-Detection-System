@@ -95,7 +95,3 @@ Common issues and solutions:
 ### Contact
 
 For questions or support, please open an issue in the repository or contact the project maintainer.
-
----
-
-This version now clearly emphasizes that the project is about deploying machine learning and deep learning models within a Docker-based testbed for DDoS detection, with the focus on the simplicity and prototyping aspect. Let me know if this fits your vision or needs further refinement!
