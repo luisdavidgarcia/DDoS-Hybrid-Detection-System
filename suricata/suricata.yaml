@@ -1,10 +1,13 @@
+%YAML 1.1
+---
+
 # Suricata Configuration File for DDoS Testbed
 
 # General configuration
 vars:
   # Define home net to be the internal subnet (adjust if needed)
   address-groups:
-    HOME_NET: "[172.18.1.0/24, 172.18.2.0/24, 172.18.3.0/24, 172.18.4.0/24]"
+    HOME_NET: "[172.19.1.0/24, 172.19.2.0/24, 172.19.3.0/24, 172.19.4.0/24]"
     EXTERNAL_NET: "!$HOME_NET"
 
 default-log-dir: /var/log/suricata  # Where the logs will be stored

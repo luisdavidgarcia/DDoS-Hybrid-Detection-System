@@ -1,4 +1,3 @@
-version: '3'
 services:
   # Internal Web Server (172.19.1.2)
   nginx_web:

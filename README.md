@@ -1,15 +1,25 @@
-# WatchTower: DDoS Detection with Autoencoders
+# Docker DDoS Testbed: Machine Learning & Deep Learning Model Deployment
 
 ## Introduction
 
-This project aims to detect Distributed Denial of Service (DDoS) attacks using a hybrid model combining autoencoders and XGBoost. The backend is built using Django and Django REST Framework, while the frontend is developed with React.
+This project aims to provide a lightweight and simple testbed for Distributed Denial of Service (DDoS) detection using various machine learning and deep learning models. The testbed is based on Docker, which allows for the easy deployment and testing of pre-trained models. The testbed is designed to be simpler than network emulation tools like GNS3 or Mininet but effective enough to test model performance in detecting DDoS attacks.
+
+### Models Included:
+- Logistic Regression
+- Decision Tree
+- Random Forest
+- XGBoost
+- CNN-LSTM
+- Hybrid Autoencoder with XGBoost
+
+The testbed is a prototype environment to quickly deploy and test these models and evaluate their performance on detecting DDoS traffic. It is ideal for prototyping and research, providing a fast and simple alternative to more complex network setups.
 
 ## Prerequisites
 
 **NOTE:** You need Anaconda for this environment; otherwise, it will not work.
 
 - Anaconda: [Download and install Anaconda](https://www.anaconda.com/products/individual)
-- Node.js and npm: [Download and install Node.js and npm](https://nodejs.org/)
+- Docker: [Download and install Docker](https://www.docker.com/)
 
 ## Setting up
 
@@ -17,96 +27,46 @@ This project aims to detect Distributed Denial of Service (DDoS) attacks using a
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/username/project-name.git
+   git clone https://github.com/luisdavidgarcia/DDoS-Hybrid-Detection-System
    cd project-name
    ```
 
-2. Run the setup script:
+2. Run the setup script to create the environment and install dependencies:
    ```sh
    ./setup.sh
    ```
 
 3. Activate your conda environment:
    ```sh
-   conda activate myenv
+   conda activate docker-ddos-testbed
    ```
 
-## Backend (Django)
+## Running the DDoS Testbed
 
-### Installation
+Once the environment is set up, you can deploy and test machine learning models on the Docker-based testbed.
 
-1. Navigate to the backend directory:
+### Running the Docker Testbed
+
+1. Ensure Docker is running on your system.
+2. Deploy the testbed using Docker Compose:
    ```sh
-   cd backend
+   docker-compose up
    ```
 
-2. Apply database migrations:
+3. The testbed will automatically set up the environment and run DDoS detection using the pre-configured machine learning models.
+
+### Running the Models
+
+Each model will be tested against the simulated network traffic within the Docker containers.
+
+1. To run the pre-trained models (Logistic Regression, Decision Tree, Random Forest, XGBoost, CNN-LSTM, and Autoencoder-XGBoost), ensure the data is properly formatted and available for the models to process.
+   
+2. Execute the detection scripts:
    ```sh
-   cd watchtower
-   python manage.py makemigrations
-   python manage.py migrate
+   python run_ddos_detection.py
    ```
 
-### Running the Application
-
-1. Start the development server:
-   ```sh
-   python manage.py runserver
-   ```
-
-2. Access the backend API at: `http://127.0.0.1:8000/`
-
-### Configuration
-
-- Ensure `INSTALLED_APPS` in `backend/watchtower/watchtower/settings.py` includes `'alertsystem'` and `'rest_framework'`.
-
-### Testing
-
-Run tests for the backend:
-   ```sh
-   python manage.py test
-   ```
-
-### Deployment
-
-Instructions for deploying the backend to a production environment (e.g., using Gunicorn, Nginx, and Docker) can be added here.
-
-## Frontend (React)
-
-### Installation
-
-1. Navigate to the frontend directory:
-   ```sh
-   cd ../../frontend
-   ```
-
-2. Install dependencies:
-   ```sh
-   npm install
-   ```
-
-### Running the Application
-
-1. Start the development server:
-   ```sh
-   npm start
-   ```
-
-2. Access the frontend at: `http://localhost:3000/`
-
-### Building for Production
-
-Build the frontend for production:
-   ```sh
-   npm run build
-   ```
-
-### Testing
-
-Run tests for the frontend:
-   ```sh
-   npm test
-   ```
+This will load the dataset, preprocess it, and then evaluate the models' effectiveness in detecting DDoS attacks.
 
 ## Additional Information
 
@@ -129,13 +89,13 @@ This project is licensed under the GNU License. See the LICENSE file for details
 
 Common issues and solutions:
 
-- **SQLite3 Error:** If you encounter an SQLite3 error on macOS, try reinstalling SQLite via conda:
-  ```sh
-  conda install -c conda-forge sqlite -y
-  ```
-
-- **React Project Naming Error:** Ensure your React project name does not contain capital letters or special characters.
+- **Docker Issues:** Ensure Docker is running correctly, and all containers are built without errors.
+- **Model Prediction Errors:** Ensure that the dataset provided is correctly formatted and compatible with the pre-trained models.
 
 ### Contact
 
 For questions or support, please open an issue in the repository or contact the project maintainer.
+
+---
+
+This version now clearly emphasizes that the project is about deploying machine learning and deep learning models within a Docker-based testbed for DDoS detection, with the focus on the simplicity and prototyping aspect. Let me know if this fits your vision or needs further refinement!
