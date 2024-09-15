@@ -3,9 +3,10 @@ import numpy as np
 import tensorflow as tf
 import logging
 from collections import defaultdict
+import joblib
 
 # Configure logging
-logging.basicConfig(filename='cnn_lstm_predictions.log', level=logging.INFO, format='%(asctime)s - %(message)s')
+logging.basicConfig(filename='/var/log/suricata/cnn_lstm_predictions.log', level=logging.INFO, format='%(asctime)s - %(message)s')
 
 # Load the CNN-LSTM model
 cnn_lstm_model = tf.keras.models.load_model('/models/cnn_lstm_model_binary.keras')
@@ -17,6 +18,10 @@ diff_srv_rate_dict = defaultdict(set)
 # Batch storage for real-time prediction
 batch_size = 64
 batch_data = []
+
+# Load encoders for service and flag features
+service_encoder = joblib.load('/models/service_encoder.joblib')
+flag_encoder = joblib.load('/models/flag_encoder.joblib')
 
 # Function to map Suricata TCP flags to your flag set
 def map_tcp_flags(tcp_flags):
@@ -37,8 +42,12 @@ def map_tcp_flags(tcp_flags):
 
 # Function to preprocess the features for CNN-LSTM model
 def preprocess_features(service, flag, src_bytes, diff_srv_rate):
-    # Create a feature array in the shape (1, 4, 1) for a single sample for keras models
-    features = np.array([[service, flag, src_bytes, diff_srv_rate]]).reshape(1, 4, 1)
+    # Encode categorical features with pre-fitted encoders
+    encoded_service = service_encoder.transform([service])[0] if service in service_encoder.classes_ else -1
+    encoded_flag = flag_encoder.transform([flag])[0] if flag in flag_encoder.classes_ else -1
+
+    # Create a feature array in the shape (1, 4, 1) for keras models
+    features = np.array([[encoded_service, encoded_flag, src_bytes, diff_srv_rate]]).reshape(1, 4, 1)
     return features
 
 # Function to process batches and make predictions
@@ -64,14 +73,14 @@ def process_log_entry(log_entry):
     # Extract relevant fields from the log entry
     src_ip = log_entry.get('src_ip')
     dest_port = log_entry.get('dest_port')
-    proto = log_entry.get('proto')
+    proto = log_entry.get('proto')  # Protocol
     flow = log_entry.get('flow', {})
     tcp = log_entry.get('tcp', {})  # TCP flags
     bytes_toserver = flow.get('bytes_toserver', 0)
 
-    # Extract service (based on destination port, e.g., 80 for HTTP)
-    service = dest_port
-    
+    # Treat protocol as the service
+    service = proto
+
     # Extract src_bytes (bytes sent by the source IP)
     src_bytes = bytes_toserver
 
@@ -89,7 +98,8 @@ def process_log_entry(log_entry):
     diff_srv_rate = len(diff_srv_rate_dict[src_ip])
 
     # Preprocess features and accumulate batch data
-    batch_data.append([service, flag, src_bytes, diff_srv_rate])
+    preprocessed_features = preprocess_features(service, flag, src_bytes, diff_srv_rate)
+    batch_data.append(preprocessed_features)
 
     # Check if batch is full and process it
     if len(batch_data) >= batch_size:

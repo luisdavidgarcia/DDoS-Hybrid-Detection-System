@@ -4,16 +4,15 @@ import numpy as np
 import logging
 from collections import defaultdict
 
-# Setup logging configuration
-logging.basicConfig(filename='model_predictions.log', level=logging.INFO, format='%(asctime)s - %(message)s')
+# Setup logging configuration with the new log file path
+logging.basicConfig(filename='/var/log/suricata/dt_model_binary_predictions.log', level=logging.INFO, format='%(asctime)s - %(message)s')
 
-# Load the Decision Tree model
+# Load the Logistic Regression model (not Decision Tree)
 dt_model = joblib.load('/models/decision_tree_binary_model.joblib')
 
 # Load the LabelEncoders for categorical features
-service_encoder = joblib.load('service_encoder.joblib')
-flag_encoder = joblib.load('flag_encoder.joblib')
-protocol_encoder = joblib.load('protocol_encoder.joblib')
+service_encoder = joblib.load('/models/service_encoder.joblib')
+flag_encoder = joblib.load('/models/flag_encoder.joblib')
 
 # Initialize data structures to track `src_bytes` and `diff_srv_rate`
 src_bytes_dict = defaultdict(int)
@@ -40,15 +39,14 @@ def map_tcp_flags(tcp_flags):
     else:
         return 'OTH'
 
-# Function to preprocess the features for the Decision Tree model
-def preprocess_features(service, protocol, flag, src_bytes, diff_srv_rate):
+# Function to preprocess the features for the Logistic Regression model
+def preprocess_features(service, flag, src_bytes, diff_srv_rate):
     # Encode categorical features with pre-fitted encoders
     encoded_service = service_encoder.transform([service])[0] if service in service_encoder.classes_ else -1
-    encoded_protocol = protocol_encoder.transform([protocol])[0] if protocol in protocol_encoder.classes_ else -1
     encoded_flag = flag_encoder.transform([flag])[0] if flag in flag_encoder.classes_ else -1
 
-    # Create a feature array for joblib models (Decision Tree)
-    features = np.array([[encoded_service, encoded_protocol, encoded_flag, src_bytes, diff_srv_rate]])
+    # Create a feature array for logistic regression
+    features = np.array([[encoded_service, encoded_flag, src_bytes, diff_srv_rate]])
     return features
 
 # Function to process batches and make predictions
@@ -56,12 +54,12 @@ def process_batch():
     global batch_data
 
     # Convert batches to numpy array for prediction
-    joblib_batch = np.array(batch_data)  # Shape for Decision Tree: (batch_size, 5)
+    joblib_batch = np.array(batch_data)
 
-    # Predict using the Decision Tree model
+    # Predict using the Logistic Regression model
     if len(joblib_batch) > 0:
         joblib_predictions = dt_model.predict(joblib_batch)
-        logging.info(f"Decision Tree Batch Predictions: {joblib_predictions}")
+        logging.info(f"Logistic Regression Batch Predictions: {joblib_predictions}")
 
     # Clear the batch data after predictions
     batch_data.clear()
@@ -79,14 +77,14 @@ def process_log_entry(log_entry):
 
     bytes_toserver = flow.get('bytes_toserver', 0)
 
-    # Extract service (based on destination port, e.g., 80 for HTTP)
-    service = dest_port  # Assuming service can be inferred from the destination port
+    # Extract service (equate it to the protocol type)
+    service = proto  # Treat protocol as service
 
     # Extract src_bytes (bytes sent by the source IP)
     src_bytes = bytes_toserver
 
     # Extract TCP flags and map them to your dataset's flags
-    flag = map_tcp_flags(tcp)  # Map Suricata TCP flags to your flag set
+    flag = map_tcp_flags(tcp)
 
     # Track diff_srv_rate (distinct services accessed by the source IP)
     if src_ip and dest_port:
@@ -99,7 +97,7 @@ def process_log_entry(log_entry):
     diff_srv_rate = len(diff_srv_rate_dict[src_ip])
 
     # Preprocess features and accumulate batch data
-    preprocessed_features = preprocess_features(service, proto, flag, src_bytes, diff_srv_rate)
+    preprocessed_features = preprocess_features(service, flag, src_bytes, diff_srv_rate)
     batch_data.append(preprocessed_features)
 
     # Check if batch is full and process it
