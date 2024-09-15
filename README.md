@@ -61,10 +61,7 @@ Each model will be tested against the simulated network traffic within the Docke
 
 1. To run the pre-trained models (Logistic Regression, Decision Tree, Random Forest, XGBoost, CNN-LSTM, and Autoencoder-XGBoost), ensure the data is properly formatted and available for the models to process.
    
-2. Execute the detection scripts:
-   ```sh
-   python run_ddos_detection.py
-   ```
+2. To train your own models or see how we trained them, please refer to the directory `notebooks/` and run the Jupyter notebooks to train the models, particulary the `results_nslk-kdd_binary.ipynb` notebook for binary classification.
 
 This will load the dataset, preprocess it, and then evaluate the models' effectiveness in detecting DDoS attacks.
 
