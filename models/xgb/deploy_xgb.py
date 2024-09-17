@@ -4,15 +4,18 @@ import numpy as np
 import logging
 from collections import defaultdict
 
+from sklearn.preprocessing import StandardScaler
+
 # Setup logging configuration
 logging.basicConfig(
     filename='/var/log/suricata/xgb_model_binary_predictions.log',
-    level=logging.INFO,
-    format='%(asctime)s - %(message)s'
+    level=logging.DEBUG,  # Set to DEBUG to capture detailed logs
+    format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-# Load the XGBoost model
+# Load the XGBoost model and pre-fitted scaler
 xgb_model = joblib.load('/models/xgboost_binary_model.joblib')
+scaler = joblib.load('/models/standard_scaler.joblib')
 
 # Load the LabelEncoders for categorical features
 service_encoder = joblib.load('/models/service_encoder.joblib')
@@ -29,43 +32,21 @@ batch_data = []
 # Service mapping function
 def map_service(dest_port):
     service_port_mapping = {
-        20: 'ftp_data',
-        21: 'ftp',
-        22: 'ssh',
-        23: 'telnet',
-        25: 'smtp',
-        53: 'domain',
-        80: 'http',
-        110: 'pop_3',
-        111: 'sunrpc',
-        113: 'auth',
-        115: 'sftp',
-        119: 'nntp',
-        143: 'imap4',
-        161: 'snmp',
-        179: 'bgp',
-        443: 'http_443',
-        513: 'login',
-        514: 'shell',
-        587: 'smtp',
-        993: 'imap4',
-        995: 'pop_3',
-        1080: 'socks',
-        1524: 'ingreslock',
-        2049: 'nfs',
-        2121: 'ftp',
-        3306: 'mysql',
-        5432: 'postgresql',
-        6667: 'IRC',
-        8000: 'http',
-        8080: 'http',
+        # Port-to-service mappings
+        20: 'ftp_data', 21: 'ftp', 22: 'ssh', 23: 'telnet', 25: 'smtp',
+        53: 'domain', 80: 'http', 110: 'pop_3', 111: 'sunrpc', 113: 'auth',
+        115: 'sftp', 119: 'nntp', 143: 'imap4', 161: 'snmp', 179: 'bgp',
+        443: 'http_443', 513: 'login', 514: 'shell', 587: 'smtp', 993: 'imap4',
+        995: 'pop_3', 1080: 'socks', 1524: 'ingreslock', 2049: 'nfs',
+        2121: 'ftp', 3306: 'mysql', 5432: 'postgresql', 6667: 'IRC',
+        8000: 'http', 8080: 'http',
     }
-    return service_port_mapping.get(dest_port, 'other')  # Default to 'other' if port is unknown
+    return service_port_mapping.get(dest_port, 'other')
 
 # Function to map Suricata TCP flags to your flag set
 def map_tcp_flags(tcp_flags):
     if not tcp_flags:
-        return 'OTH'  # Default to 'OTH' if flags are missing
+        return 'OTH'  # Default if flags are missing
     if tcp_flags.get('syn') and tcp_flags.get('fin'):
         return 'SF'
     elif tcp_flags.get('syn') and not (tcp_flags.get('ack') or tcp_flags.get('fin')):
@@ -79,90 +60,111 @@ def map_tcp_flags(tcp_flags):
     elif tcp_flags.get('fin'):
         return 'S1'
     else:
-        return 'OTH'  # Default to 'OTH' for unknown flags
+        return 'OTH'
 
 # Function to preprocess the features
 def preprocess_features(service, flag, src_bytes, diff_srv_rate):
-    # Encode categorical features with pre-fitted encoders
-    if service in service_encoder.classes_:
+    # Encode categorical features
+    try:
         encoded_service = service_encoder.transform([service])[0]
-    else:
-        return None  # Skip processing if service is unknown
+    except ValueError:
+        logging.warning(f"Unknown service '{service}'. Skipping entry.")
+        return None  # Skip if service is unknown
 
-    if flag in flag_encoder.classes_:
+    try:
         encoded_flag = flag_encoder.transform([flag])[0]
-    else:
-        encoded_flag = flag_encoder.transform(['OTH'])[0]  # Set unknown flag to 'OTH'
+    except ValueError:
+        logging.debug(f"Unknown flag '{flag}'. Setting to 'OTH'.")
+        encoded_flag = flag_encoder.transform(['OTH'])[0]
 
-    # Create a feature array
     features = np.array([encoded_service, encoded_flag, src_bytes, diff_srv_rate])
+    logging.debug(f"Encoded features: {features}")
     return features
 
 # Function to process batches and make predictions
 def process_batch():
     global batch_data
 
-    # Convert batches to numpy array for prediction
-    joblib_batch = np.array(batch_data)  # Shape: (batch_size, 4)
+    if len(batch_data) == 0:
+        return
 
-    # Predict using the XGBoost model
-    if len(joblib_batch) > 0:
-        joblib_predictions = xgb_model.predict(joblib_batch)
-        logging.info(f"XGBoost Batch Predictions: {joblib_predictions}")
-        # Optionally, you can add more logic here to handle the predictions
+    # Separate features and metadata
+    features_list, metadata_list = zip(*batch_data)
+    joblib_batch = np.array(features_list)
 
-    # Clear the batch data after predictions
+    logging.debug(f"Batch before scaling: {joblib_batch}")
+
+    # Scale features using the pre-fitted scaler
+    joblib_batch_scaled = scaler.transform(joblib_batch)
+
+    logging.debug(f"Batch after scaling: {joblib_batch_scaled}")
+
+    # Predict probabilities and class labels
+    joblib_probabilities = xgb_model.predict_proba(joblib_batch_scaled)[:, 1]
+    joblib_predictions = (joblib_probabilities >= 0.5).astype(int)
+
+    # Log detailed predictions
+    for prediction, probability, features, metadata in zip(joblib_predictions, joblib_probabilities, joblib_batch_scaled, metadata_list):
+        logging.info(
+            f"Prediction: {prediction}, Probability: {probability:.4f}, Features: {features.tolist()}, Metadata: {metadata}"
+        )
+
+    # Clear batch data
     batch_data.clear()
 
-# Function to handle new log entries and accumulate batch data
+# Function to handle new log entries
 def process_log_entry(log_entry):
     global batch_data
 
-    # Extract relevant fields from the log entry
+    # Extract relevant fields
     src_ip = log_entry.get('src_ip')
     dest_port = log_entry.get('dest_port')
-    proto = log_entry.get('proto')  # Protocol field, e.g., 'TCP', 'UDP'
+    proto = log_entry.get('proto')
     flow = log_entry.get('flow', {})
-    tcp = log_entry.get('tcp', {})  # TCP flags
+    tcp = log_entry.get('tcp', {})
 
     bytes_toserver = flow.get('bytes_toserver', 0)
 
-    # Map the destination port to a service
-    if dest_port:
-        service = map_service(dest_port)
-    else:
-        service = 'other'
-
-    # Extract src_bytes (bytes sent by the source IP)
-    src_bytes = bytes_toserver
-
-    # Map TCP flags
+    # Map service and flags
+    service = map_service(dest_port) if dest_port else 'other'
     flag = map_tcp_flags(tcp)
 
-    # Track diff_srv_rate (distinct services accessed by the source IP)
+    # Calculate src_bytes and diff_srv_rate
+    src_bytes = bytes_toserver
     if src_ip and dest_port:
         diff_srv_rate_dict[src_ip].add(dest_port)
-    
-    # Get `diff_srv_rate` as the number of distinct services accessed by the src_ip
     diff_srv_rate = len(diff_srv_rate_dict[src_ip])
 
-    # Preprocess features and accumulate batch data
+    # Log raw inputs
+    logging.debug(
+        f"Raw input - src_ip: {src_ip}, dest_port: {dest_port}, proto: {proto}, "
+        f"service: {service}, flag: {flag}, src_bytes: {src_bytes}, diff_srv_rate: {diff_srv_rate}"
+    )
+
+    # Preprocess features
     preprocessed_features = preprocess_features(service, flag, src_bytes, diff_srv_rate)
     if preprocessed_features is not None:
-        batch_data.append(preprocessed_features)
+        metadata = {
+            'src_ip': src_ip,
+            'dest_port': dest_port,
+            'proto': proto,
+            'service': service,
+            'flag': flag,
+            'timestamp': log_entry.get('timestamp')
+        }
+        batch_data.append((preprocessed_features, metadata))
     else:
-        # Skip this entry due to unknown service
-        logging.warning(f"Unknown service '{service}' encountered. Skipping entry.")
+        # Entry skipped due to unknown service
         return
 
-    # Check if batch is full and process it
+    # Process batch if full
     if len(batch_data) >= batch_size:
         process_batch()
 
 # Real-time log streaming
 def stream_suricata_logs(log_file_path='/var/log/suricata/eve.json'):
     with open(log_file_path, 'r') as log_file:
-        log_file.seek(0, 2)  # Move to the end of the file
+        log_file.seek(0, 2)  # Move to end of file
         while True:
             line = log_file.readline()
             if line:
@@ -170,10 +172,10 @@ def stream_suricata_logs(log_file_path='/var/log/suricata/eve.json'):
                     log_entry = json.loads(line)
                     process_log_entry(log_entry)
                 except json.JSONDecodeError:
-                    continue  # Skip invalid log lines
+                    logging.error(f"JSONDecodeError: {line.strip()}")
+                    continue
             else:
-                continue  # Wait for new log entries
+                continue
 
-# Start real-time log streaming
 if __name__ == "__main__":
     stream_suricata_logs()

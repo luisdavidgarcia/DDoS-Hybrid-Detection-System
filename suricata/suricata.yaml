@@ -57,7 +57,7 @@ outputs:
 
 # Alerting based on Suricata's default rules
 rule-files:
-  - suricata.rules  # Reference to rules file (relative path within /etc/suricata/rules/)
+  - /etc/suricata/rules/suricata.rules
 
 # CPU configuration
 threading:
