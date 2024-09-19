@@ -41,6 +41,8 @@ outputs:
       types:
         - alert:
             metadata: yes
+            tags: yes
+            flow: yes
         - http:
             extended: yes
         - dns:
