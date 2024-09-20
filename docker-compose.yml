@@ -50,11 +50,66 @@ services:
     platform: linux/amd64
     networks:
       shared_net:
-        ipv4_address: 172.19.5.7
+        ipv4_address: 172.19.5.6
     volumes:
       - ./models/xgb:/models
       - ./logs:/var/log/suricata
     command: sh -c "pip install scikit-learn joblib numpy xgboost && python3 /models/deploy_xgb.py"
+
+  lr_model:
+    image: tensorflow/tensorflow:latest
+    platform: linux/amd64
+    networks:
+      monitoring_net:
+        ipv4_address: 172.19.5.7
+    volumes:
+      - ./models/lr:/models
+      - ./logs:/var/log/suricata  # Share logs directory
+    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_lr.py"
+
+  dt_model:
+    image: tensorflow/tensorflow:latest
+    platform: linux/amd64
+    networks:
+      monitoring_net:
+        ipv4_address: 172.19.5.8
+    volumes:
+      - ./models/dt:/models
+      - ./logs:/var/log/suricata  # Share logs directory
+    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_dt.py"
+
+  rf_model:
+    image: tensorflow/tensorflow:latest
+    platform: linux/amd64
+    networks:
+      monitoring_net:
+        ipv4_address: 172.19.5.9
+    volumes:
+      - ./models/rf:/models
+      - ./logs:/var/log/suricata  # Share logs directory
+    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_rf.py"
+
+  ae_xgb_model:
+    image: tensorflow/tensorflow:latest
+    platform: linux/amd64
+    networks:
+      monitoring_net:
+        ipv4_address: 172.19.5.10
+    volumes:
+      - ./models/ae_xgb:/models
+      - ./logs:/var/log/suricata  # Share logs directory
+    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_aexgb.py"
+
+  cnn_lstm_model:
+    image: tensorflow/tensorflow:latest
+    platform: linux/amd64
+    networks:
+      monitoring_net:
+        ipv4_address: 172.19.5.11
+    volumes:
+      - ./models/cnn_lstm:/models
+      - ./logs:/var/log/suricata  # Share logs directory
+    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_cnn_lstm.py"
 
   legit1:
     image: alpine
@@ -62,7 +117,7 @@ services:
     command: sh -c "while true; do wget -qO- 172.19.5.2; sleep 5; done"
     networks:
       shared_net:
-        ipv4_address: 172.19.5.8
+        ipv4_address: 172.19.5.12
 
   legit2:
     image: alpine
@@ -70,7 +125,7 @@ services:
     command: sh -c "while true; do wget -qO- 172.19.5.2; sleep 5; done"
     networks:
       shared_net:
-        ipv4_address: 172.19.5.9
+        ipv4_address: 172.19.5.13
 
 networks:
   shared_net:
