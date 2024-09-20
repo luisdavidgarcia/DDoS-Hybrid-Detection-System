@@ -1,33 +1,46 @@
 import json
+import logging
+import joblib
 import numpy as np
 import tensorflow as tf
-import joblib
-import logging
+from sklearn.preprocessing import StandardScaler
 from collections import defaultdict
 
-# Configure logging
-logging.basicConfig(filename='/var/log/suricata/ae_xgb_predictions.log', level=logging.INFO, format='%(asctime)s - %(message)s')
+filename = 'ae_xgb_model_binary'
 
-# Load the AE-XGBoost model
-ae_xgb_model = joblib.load('/models/xgboost_binary_model.joblib')
+logging.basicConfig(
+    filename=f'/var/log/suricata/{filename}_predictions.log',
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
-# Load the encoder model
+model = joblib(f'/models/{filename}.keras')
 encoder_model = tf.keras.models.load_model('/models/encoder_model.keras')
-
-# Load the LabelEncoders for categorical features
 service_encoder = joblib.load('/models/service_encoder.joblib')
 flag_encoder = joblib.load('/models/flag_encoder.joblib')
+scaler = joblib.load('/models/standard_scaler.joblib') 
 
-# Initialize data structures to track `src_bytes` and `diff_srv_rate`
 src_bytes_dict = defaultdict(int)
 diff_srv_rate_dict = defaultdict(set)
-
-# Batch storage for real-time prediction
 batch_size = 64
 batch_data = []
 
-# Function to map Suricata TCP flags to your flag set
-def map_tcp_flags(tcp_flags):
+############ Helper Functions ############
+def _map_service(dest_port):
+    service_port_mapping = {
+        20: 'ftp_data', 21: 'ftp', 22: 'ssh', 23: 'telnet', 25: 'smtp',
+        53: 'domain', 80: 'http', 110: 'pop_3', 111: 'sunrpc', 113: 'auth',
+        115: 'sftp', 119: 'nntp', 143: 'imap4', 161: 'snmp', 179: 'bgp',
+        443: 'http_443', 513: 'login', 514: 'shell', 587: 'smtp', 993: 'imap4',
+        995: 'pop_3', 1080: 'socks', 1524: 'ingreslock', 2049: 'nfs',
+        2121: 'ftp', 3306: 'mysql', 5432: 'postgresql', 6667: 'IRC',
+        8000: 'http', 8080: 'http'
+    }
+    return service_port_mapping.get(dest_port, 'other')
+
+def _map_tcp_flags(tcp_flags):
+    if not tcp_flags:
+        return 'OTH' 
     if tcp_flags.get('syn') and tcp_flags.get('fin'):
         return 'SF'
     elif tcp_flags.get('syn') and not (tcp_flags.get('ack') or tcp_flags.get('fin')):
@@ -43,102 +56,121 @@ def map_tcp_flags(tcp_flags):
     else:
         return 'OTH'
 
-# Function to preprocess and encode the features
-def preprocess_and_encode_features(service, flag, src_bytes, diff_srv_rate):
+def _preprocess_features(service, flag, src_bytes, diff_srv_rate):
     try:
-        # Encode categorical features with pre-fitted encoders
-        encoded_service = service_encoder.transform([service])[0] if service in service_encoder.classes_ else -1
-        encoded_flag = flag_encoder.transform([flag])[0] if flag in flag_encoder.classes_ else -1
-
-        # Create a feature array
-        features = np.array([[encoded_service, encoded_flag, src_bytes, diff_srv_rate]])
-
-        # Reshape and encode the features using the trained encoder model
-        features_reshaped = features.reshape((features.shape[0], features.shape[1], 1))
-        encoded_features = encoder_model.predict(features_reshaped)
-
-        # Flatten the encoded data for XGBoost
-        encoded_features_flat = encoded_features.reshape((encoded_features.shape[0], -1))
-        return encoded_features_flat
-
-    except Exception as e:
-        logging.error(f"Error during preprocessing or encoding: {str(e)}")
+        encoded_service = service_encoder.transform([service])[0]
+    except ValueError:
+        logging.warning(f"Unknown service '{service}'. Skipping entry.")
         return None
 
-# Function to process batches and make predictions
-def process_batch():
+    try:
+        encoded_flag = flag_encoder.transform([flag])[0]
+    except ValueError:
+        logging.debug(f"Unknown flag '{flag}'. Setting to 'OTH'.")
+        encoded_flag = flag_encoder.transform(['OTH'])[0]
+
+    features = np.array([[encoded_service, encoded_flag, src_bytes, diff_srv_rate]])
+
+    logging.debug(f"Encoded features: {features}")
+    return features
+
+def _process_batch():
     global batch_data
 
-    try:
-        # Process and encode the batch data
-        encoded_batch = np.vstack([preprocess_and_encode_features(*data) for data in batch_data if preprocess_and_encode_features(*data) is not None])
+    if len(batch_data) == 0:
+        return
 
-        if len(encoded_batch) > 0:
-            # Predict using the AE-XGBoost model
-            predictions = ae_xgb_model.predict(encoded_batch)
-            logging.info(f"AE-XGBoost Batch Predictions: {predictions}")
-        else:
-            logging.error("Empty batch or error in preprocessing. Skipping predictions.")
+    features_list, metadata_list = zip(*batch_data)
+    joblib_batch = np.array(features_list)
 
-    except Exception as e:
-        logging.error(f"Error during batch processing: {str(e)}")
+    logging.debug(f"Batch before scaling: {joblib_batch}")
 
-    finally:
-        # Clear the batch data after predictions
-        batch_data.clear()
+    joblib_batch_scaled = scaler.transform(joblib_batch)
 
-# Function to handle new log entries and accumulate batch data
-def process_log_entry(log_entry):
+    logging.debug(f"Batch after scaling: {joblib_batch_scaled}")
+
+    batch_reshaped = joblib_batch_scaled.reshape((joblib_batch_scaled.shape[0], joblib_batch_scaled.shape[1], 1))
+    encoded_features = encoder_model.predict(batch_reshaped)
+    encoded_features_flat = encoded_features.reshape((encoded_features.shape[0], -1))
+    
+    joblib_probabilities = model.predict(encoded_features_flat)
+    joblib_predictions = (joblib_probabilities >= 0.5).astype(int)
+
+    for prediction, probability, features, metadata in zip(joblib_predictions, 
+        joblib_probabilities, joblib_batch_scaled, metadata_list):
+        logging.info(
+            f"Prediction: {prediction}, Probability: {probability:.4f}, Features: {features.tolist()}, Metadata: {metadata}"
+        )
+
+    batch_data.clear()
+
+def _process_log_entry(log_entry):
     global batch_data
 
-    try:
-        # Extract relevant fields from the log entry
-        src_ip = log_entry.get('src_ip')
-        dest_port = log_entry.get('dest_port')
-        proto = log_entry.get('proto')
-        flow = log_entry.get('flow', {})
-        tcp = log_entry.get('tcp', {})
-        bytes_toserver = flow.get('bytes_toserver', 0)
+    event_type = log_entry.get('event_type')
+    if event_type == "stats":
+        logging.debug("Skipping stats log entry.")
+        return
 
-        # Extract and map features
-        service = proto
-        src_bytes = bytes_toserver
-        flag = map_tcp_flags(tcp)
+    src_ip = log_entry.get('src_ip')
+    if src_ip is None:
+        logging.debug("Skipping log entry due to missing src_ip.")
+        return
 
-        # Track and store network statistics
-        if src_ip and dest_port:
-            diff_srv_rate_dict[src_ip].add(dest_port)
-        src_bytes_dict[src_ip] += src_bytes
-        diff_srv_rate = len(diff_srv_rate_dict[src_ip])
+    dest_port = log_entry.get('dest_port')
+    proto = log_entry.get('proto')
+    flow = log_entry.get('flow', {})
+    tcp = log_entry.get('tcp', {})
 
-        # Accumulate preprocessed and encoded batch data
-        batch_data.append((service, flag, src_bytes, diff_srv_rate))
+    bytes_toserver = flow.get('bytes_toserver', 0)
 
-        # Check if batch is full and process it
-        if len(batch_data) >= batch_size:
-            process_batch()
+    service = _map_service(dest_port) if dest_port else 'other'
+    if proto == "ICMP":
+        service = "ecr_i"
+    flag = _map_tcp_flags(tcp)
 
-    except Exception as e:
-        logging.error(f"Error processing log entry: {str(e)}")
+    src_bytes = bytes_toserver
+    if src_ip and dest_port:
+        diff_srv_rate_dict[src_ip].add(dest_port)
+    diff_srv_rate = len(diff_srv_rate_dict[src_ip])
 
-# Real-time log streaming
+    logging.debug(
+        f"Raw input - src_ip: {src_ip}, dest_port: {dest_port}, proto: {proto}, "
+        f"service: {service}, flag: {flag}, src_bytes: {src_bytes}, diff_srv_rate: {diff_srv_rate}"
+    )
+
+    preprocessed_features = _preprocess_features(service, flag, src_bytes, diff_srv_rate)
+    if preprocessed_features is not None:
+        metadata = {
+            'src_ip': src_ip,
+            'dest_port': dest_port,
+            'proto': proto,
+            'service': service,
+            'flag': flag,
+            'timestamp': log_entry.get('timestamp')
+        }
+        batch_data.append((preprocessed_features, metadata))
+    else:
+        return
+
+    if len(batch_data) >= batch_size:
+        _process_batch()
+
+############ Main Function ############
 def stream_suricata_logs(log_file_path='/var/log/suricata/eve.json'):
-    try:
-        with open(log_file_path, 'r') as log_file:
-            log_file.seek(0, 2)  # Move to the end of the file
-            while True:
-                line = log_file.readline()
-                if line:
-                    try:
-                        log_entry = json.loads(line)
-                        process_log_entry(log_entry)
-                    except json.JSONDecodeError:
-                        continue  # Skip invalid log lines
-                else:
-                    continue  # Wait for new log entries
-    except Exception as e:
-        logging.error(f"Error reading log file: {str(e)}")
+    with open(log_file_path, 'r') as log_file:
+        log_file.seek(0, 2)
+        while True:
+            line = log_file.readline()
+            if line:
+                try:
+                    log_entry = json.loads(line)
+                    _process_log_entry(log_entry)
+                except json.JSONDecodeError:
+                    logging.error(f"JSONDecodeError: {line.strip()}")
+                    continue
+            else:
+                continue
 
-# Start real-time log streaming
 if __name__ == "__main__":
     stream_suricata_logs()
