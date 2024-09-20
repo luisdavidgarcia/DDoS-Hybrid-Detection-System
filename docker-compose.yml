@@ -32,7 +32,7 @@ services:
   attacker2:
     image: debian
     platform: linux/amd64
-    command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --icmp 172.19.5.2; sleep 1; done"
+    command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --udp -p 80 172.19.5.2; sleep 1; done"
     networks:
       shared_net:
         ipv4_address: 172.19.5.4

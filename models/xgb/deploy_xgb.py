@@ -39,7 +39,7 @@ def map_service(dest_port):
         443: 'http_443', 513: 'login', 514: 'shell', 587: 'smtp', 993: 'imap4',
         995: 'pop_3', 1080: 'socks', 1524: 'ingreslock', 2049: 'nfs',
         2121: 'ftp', 3306: 'mysql', 5432: 'postgresql', 6667: 'IRC',
-        8000: 'http', 8080: 'http',
+        8000: 'http', 8080: 'http'
     }
     return service_port_mapping.get(dest_port, 'other')
 
@@ -112,12 +112,21 @@ def process_batch():
     # Clear batch data
     batch_data.clear()
 
-# Function to handle new log entries
 def process_log_entry(log_entry):
     global batch_data
 
+    # Check event_type and skip if it's not relevant (e.g., stats)
+    event_type = log_entry.get('event_type')
+    if event_type == "stats":
+        logging.debug("Skipping stats log entry.")
+        return
+
     # Extract relevant fields
     src_ip = log_entry.get('src_ip')
+    if src_ip is None:
+        logging.debug("Skipping log entry due to missing src_ip.")
+        return
+
     dest_port = log_entry.get('dest_port')
     proto = log_entry.get('proto')
     flow = log_entry.get('flow', {})
@@ -127,6 +136,8 @@ def process_log_entry(log_entry):
 
     # Map service and flags
     service = map_service(dest_port) if dest_port else 'other'
+    if proto == "ICMP":
+        service = "ecr_i"
     flag = map_tcp_flags(tcp)
 
     # Calculate src_bytes and diff_srv_rate

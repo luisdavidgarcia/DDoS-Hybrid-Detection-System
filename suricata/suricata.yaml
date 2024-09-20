@@ -45,16 +45,10 @@ outputs:
             flow: yes
         - http:
             extended: yes
-        - dns:
-            query: yes
         - tls:
             extended: yes
         - drop
-        - fileinfo
-        - ssh
-        - stats:
-            totals: yes
-            threads: yes
+        - icmp
         - flow
 
 # Alerting based on Suricata's default rules
