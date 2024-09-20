@@ -9,7 +9,7 @@ from collections import defaultdict
 filename = 'cnn_lstm_model_binary'
 
 logging.basicConfig(
-    filename=f'/var/log/suricata/{filename}_predictions.log',
+    filename=f'/models/{filename}_predictions.log',
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
@@ -68,7 +68,7 @@ def _preprocess_features(service, flag, src_bytes, diff_srv_rate):
         logging.debug(f"Unknown flag '{flag}'. Setting to 'OTH'.")
         encoded_flag = flag_encoder.transform(['OTH'])[0]
 
-    features = np.array([[encoded_service, encoded_flag, src_bytes, diff_srv_rate]])
+    features = np.array([encoded_service, encoded_flag, src_bytes, diff_srv_rate])
     logging.debug(f"Encoded features: {features}")
     return features
 
@@ -87,9 +87,9 @@ def _process_batch():
 
     logging.debug(f"Batch after scaling: {joblib_batch_scaled}")
 
-    reshaped_batch = joblib_batch_scaled.reshape(-1, 4, 1)
+    reshaped_batch = joblib_batch_scaled.reshape((joblib_batch.shape[0], joblib_batch.shape[1], 1))
     
-    joblib_probabilities = model.predict(reshaped_batch)[:, 1]
+    joblib_probabilities = model.predict(reshaped_batch).flatten() 
     joblib_predictions = (joblib_probabilities >= 0.5).astype(int)
 
     for prediction, probability, features, metadata in zip(joblib_predictions, 

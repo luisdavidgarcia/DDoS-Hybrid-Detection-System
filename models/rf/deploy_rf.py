@@ -8,7 +8,7 @@ from collections import defaultdict
 filename = 'random_forest_binary_model'
 
 logging.basicConfig(
-    filename=f'/var/log/suricata/{filename}_predictions.log',
+    filename=f'/models/{filename}_predictions.log',
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )

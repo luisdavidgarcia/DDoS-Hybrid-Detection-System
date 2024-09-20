@@ -5,10 +5,10 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from collections import defaultdict
 
-filename = 'decision_tree_binary_model'
+filename = 'logistic_regression_binary_model'
 
 logging.basicConfig(
-    filename=f'/var/log/suricata/{filename}_predictions.log',
+    filename=f'/models/{filename}_predictions.log',
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )

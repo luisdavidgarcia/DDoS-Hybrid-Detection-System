@@ -9,12 +9,12 @@ from collections import defaultdict
 filename = 'ae_xgb_model_binary'
 
 logging.basicConfig(
-    filename=f'/var/log/suricata/{filename}_predictions.log',
+    filename=f'/models/{filename}_predictions.log',
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-model = joblib(f'/models/{filename}.keras')
+model = joblib.load(f'/models/{filename}.joblib')
 encoder_model = tf.keras.models.load_model('/models/encoder_model.keras')
 service_encoder = joblib.load('/models/service_encoder.joblib')
 flag_encoder = joblib.load('/models/flag_encoder.joblib')
@@ -69,8 +69,7 @@ def _preprocess_features(service, flag, src_bytes, diff_srv_rate):
         logging.debug(f"Unknown flag '{flag}'. Setting to 'OTH'.")
         encoded_flag = flag_encoder.transform(['OTH'])[0]
 
-    features = np.array([[encoded_service, encoded_flag, src_bytes, diff_srv_rate]])
-
+    features = np.array([encoded_service, encoded_flag, src_bytes, diff_srv_rate])
     logging.debug(f"Encoded features: {features}")
     return features
 
