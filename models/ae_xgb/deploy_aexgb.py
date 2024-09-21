@@ -86,8 +86,6 @@ def _process_batch():
 
     joblib_batch_scaled = scaler.transform(joblib_batch)
 
-    logging.debug(f"Batch after scaling: {joblib_batch_scaled}")
-
     batch_reshaped = joblib_batch_scaled.reshape((joblib_batch_scaled.shape[0], joblib_batch_scaled.shape[1], 1))
     encoded_features = encoder_model.predict(batch_reshaped)
     encoded_features_flat = encoded_features.reshape((encoded_features.shape[0], -1))
