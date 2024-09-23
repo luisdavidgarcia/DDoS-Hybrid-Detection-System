@@ -1,0 +1,113 @@
+Predictions by IP for /Users/lucky/GitHub/DDoS-Hybrid-Detection-System/models/ae_xgb/ae_xgb_model_binary_predictions.log:
+IP: 172.19.5.12, Prediction 0: 357, Prediction 1: 0
+IP: 172.19.5.13, Prediction 0: 357, Prediction 1: 0
+IP: 172.19.5.3, Prediction 0: 981, Prediction 1: 0
+IP: 172.19.5.4, Prediction 0: 863, Prediction 1: 0
+IP: 172.19.5.5, Prediction 0: 3904, Prediction 1: 0
+
+Metrics for /Users/lucky/GitHub/DDoS-Hybrid-Detection-System/models/ae_xgb/ae_xgb_model_binary_predictions.log:
+True Positives (TP): 0
+False Positives (FP): 0
+True Negatives (TN): 714
+False Negatives (FN): 5748
+Accuracy: 0.11049210770659239
+Precision: 0
+Recall: 0.0
+F1 Score: 0
+
+Outliers, Prediction 0: 0, Prediction 1: 0
+
+Predictions by IP for /Users/lucky/GitHub/DDoS-Hybrid-Detection-System/models/cnn_lstm/cnn_lstm_model_binary_predictions.log:
+IP: 172.19.5.12, Prediction 0: 357, Prediction 1: 0
+IP: 172.19.5.13, Prediction 0: 357, Prediction 1: 0
+IP: 172.19.5.3, Prediction 0: 981, Prediction 1: 0
+IP: 172.19.5.4, Prediction 0: 863, Prediction 1: 0
+IP: 172.19.5.5, Prediction 0: 3904, Prediction 1: 0
+
+Metrics for /Users/lucky/GitHub/DDoS-Hybrid-Detection-System/models/cnn_lstm/cnn_lstm_model_binary_predictions.log:
+True Positives (TP): 0
+False Positives (FP): 0
+True Negatives (TN): 714
+False Negatives (FN): 5748
+Accuracy: 0.11049210770659239
+Precision: 0
+Recall: 0.0
+F1 Score: 0
+
+Outliers, Prediction 0: 0, Prediction 1: 0
+
+Predictions by IP for /Users/lucky/GitHub/DDoS-Hybrid-Detection-System/models/dt/decision_tree_binary_model_predictions.log:
+IP: 172.19.5.12, Prediction 0: 178, Prediction 1: 178
+IP: 172.19.5.13, Prediction 0: 178, Prediction 1: 178
+IP: 172.19.5.3, Prediction 0: 892, Prediction 1: 89
+IP: 172.19.5.4, Prediction 0: 0, Prediction 1: 863
+IP: 172.19.5.5, Prediction 0: 1800, Prediction 1: 2106
+
+Metrics for /Users/lucky/GitHub/DDoS-Hybrid-Detection-System/models/dt/decision_tree_binary_model_predictions.log:
+True Positives (TP): 3058
+False Positives (FP): 356
+True Negatives (TN): 356
+False Negatives (FN): 2692
+Accuracy: 0.5283194057567316
+Precision: 0.8957234915055653
+Recall: 0.5318260869565218
+F1 Score: 0.667394151025753
+
+Outliers, Prediction 0: 0, Prediction 1: 0
+
+Predictions by IP for /Users/lucky/GitHub/DDoS-Hybrid-Detection-System/models/lr/logistic_regression_binary_model_predictions.log:
+IP: 172.19.5.12, Prediction 0: 0, Prediction 1: 356
+IP: 172.19.5.13, Prediction 0: 0, Prediction 1: 356
+IP: 172.19.5.3, Prediction 0: 0, Prediction 1: 981
+IP: 172.19.5.4, Prediction 0: 0, Prediction 1: 863
+IP: 172.19.5.5, Prediction 0: 0, Prediction 1: 3906
+
+Metrics for /Users/lucky/GitHub/DDoS-Hybrid-Detection-System/models/lr/logistic_regression_binary_model_predictions.log:
+True Positives (TP): 5750
+False Positives (FP): 712
+True Negatives (TN): 0
+False Negatives (FN): 0
+Accuracy: 0.889817393995667
+Precision: 0.889817393995667
+Recall: 1.0
+F1 Score: 0.9416966917785784
+
+Outliers, Prediction 0: 0, Prediction 1: 0
+
+Predictions by IP for /Users/lucky/GitHub/DDoS-Hybrid-Detection-System/models/rf/random_forest_binary_model_predictions.log:
+IP: 172.19.5.12, Prediction 0: 0, Prediction 1: 356
+IP: 172.19.5.13, Prediction 0: 0, Prediction 1: 356
+IP: 172.19.5.3, Prediction 0: 892, Prediction 1: 89
+IP: 172.19.5.4, Prediction 0: 0, Prediction 1: 863
+IP: 172.19.5.5, Prediction 0: 12, Prediction 1: 3894
+
+Metrics for /Users/lucky/GitHub/DDoS-Hybrid-Detection-System/models/rf/random_forest_binary_model_predictions.log:
+True Positives (TP): 4846
+False Positives (FP): 712
+True Negatives (TN): 0
+False Negatives (FN): 904
+Accuracy: 0.7499226245744351
+Precision: 0.8718963655991364
+Recall: 0.8427826086956521
+F1 Score: 0.8570923240183941
+
+Outliers, Prediction 0: 0, Prediction 1: 0
+
+Predictions by IP for /Users/lucky/GitHub/DDoS-Hybrid-Detection-System/models/xgb/xgboost_binary_model_predictions.log:
+IP: 172.19.5.3, Prediction 0: 1149, Prediction 1: 112
+IP: 172.19.5.12, Prediction 0: 0, Prediction 1: 449
+IP: 172.19.5.13, Prediction 0: 0, Prediction 1: 450
+IP: 172.19.5.4, Prediction 0: 0, Prediction 1: 1097
+IP: 172.19.5.5, Prediction 0: 0, Prediction 1: 5123
+
+Metrics for /Users/lucky/GitHub/DDoS-Hybrid-Detection-System/models/xgb/xgboost_binary_model_predictions.log:
+True Positives (TP): 6332
+False Positives (FP): 899
+True Negatives (TN): 0
+False Negatives (FN): 1149
+Accuracy: 0.7556085918854415
+Precision: 0.8756741806112571
+Recall: 0.8464109076326695
+F1 Score: 0.8607939097335507
+
+Outliers, Prediction 0: 0, Prediction 1: 0
