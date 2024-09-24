@@ -49,53 +49,53 @@ services:
       shared_net:
         ipv4_address: 172.19.5.5
 
-  # xgboost_model:
-  #   image: tensorflow/tensorflow:latest
-  #   platform: linux/amd64
-  #   container_name: xgboost_model
-  #   networks:
-  #     shared_net:
-  #       ipv4_address: 172.19.5.6
-  #   volumes:
-  #     - ./models/xgb:/models
-  #     - ./logs:/var/log/suricata
-  #   command: sh -c "pip install scikit-learn joblib numpy xgboost && python3 /models/deploy_xgb.py"
+  xgboost_model:
+    image: tensorflow/tensorflow:latest
+    platform: linux/amd64
+    container_name: xgboost_model
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.6
+    volumes:
+      - ./models/xgb:/models
+      - ./logs:/var/log/suricata
+    command: sh -c "pip install scikit-learn joblib numpy xgboost && python3 /models/deploy_xgb.py"
 
-  # lr_model:
-  #   image: tensorflow/tensorflow:latest
-  #   platform: linux/amd64
-  #   container_name: lr_model
-  #   networks:
-  #     shared_net:
-  #       ipv4_address: 172.19.5.7
-  #   volumes:
-  #     - ./models/lr:/models
-  #     - ./logs:/var/log/suricata
-  #   command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_lr.py"
+  lr_model:
+    image: tensorflow/tensorflow:latest
+    platform: linux/amd64
+    container_name: lr_model
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.7
+    volumes:
+      - ./models/lr:/models
+      - ./logs:/var/log/suricata
+    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_lr.py"
 
-  # dt_model:
-  #   image: tensorflow/tensorflow:latest
-  #   platform: linux/amd64
-  #   container_name: dt_model
-  #   networks:
-  #     shared_net:
-  #       ipv4_address: 172.19.5.8
-  #   volumes:
-  #     - ./models/dt:/models
-  #     - ./logs:/var/log/suricata
-  #   command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_dt.py"
+  dt_model:
+    image: tensorflow/tensorflow:latest
+    platform: linux/amd64
+    container_name: dt_model
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.8
+    volumes:
+      - ./models/dt:/models
+      - ./logs:/var/log/suricata
+    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_dt.py"
 
-  # rf_model:
-  #   image: tensorflow/tensorflow:latest
-  #   platform: linux/amd64
-  #   container_name: rf_model
-  #   networks:
-  #     shared_net:
-  #       ipv4_address: 172.19.5.9
-  #   volumes:
-  #     - ./models/rf:/models
-  #     - ./logs:/var/log/suricata
-  #   command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_rf.py"
+  rf_model:
+    image: tensorflow/tensorflow:latest
+    platform: linux/amd64
+    container_name: rf_model
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.9
+    volumes:
+      - ./models/rf:/models
+      - ./logs:/var/log/suricata
+    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_rf.py"
 
   ae_xgb_model:
     image: armswdev/tensorflow-arm-neoverse
@@ -109,17 +109,17 @@ services:
       - ./logs:/var/log/suricata
     command: sh -c "pip install scikit-learn joblib numpy xgboost && python3 /models/deploy_aexgb.py"
 
-  # cnn_lstm_model:
-  #   image: armswdev/tensorflow-arm-neoverse
-  #   platform: linux/arm64
-  #   container_name: cnn_lstm_model
-  #   networks:
-  #     shared_net:
-  #       ipv4_address: 172.19.5.11
-  #   volumes:
-  #     - ./models/cnn_lstm:/models
-  #     - ./logs:/var/log/suricata
-  #   command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_cnn_lstm.py"
+  cnn_lstm_model:
+    image: armswdev/tensorflow-arm-neoverse
+    platform: linux/arm64
+    container_name: cnn_lstm_model
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.11
+    volumes:
+      - ./models/cnn_lstm:/models
+      - ./logs:/var/log/suricata
+    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_cnn_lstm.py"
 
   legit1:
     image: alpine

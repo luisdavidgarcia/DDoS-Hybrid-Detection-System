@@ -1,35 +1,42 @@
 #!/bin/bash
 
-# Start docker-compose and build containers in detached mode
-echo "Starting docker-compose and building containers..."
-docker-compose up --build -d
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+STATS_LOG="logs/docker_stats_$TIMESTAMP.log"
 
-# Define the log file where you want to store the stats
-STATS_LOG="logs/docker_stats.log"
+# Detect system architecture
+ARCH=$(uname -m)
+if [ "$ARCH" = "x86_64" ]; then
+    COMPOSE_FILE="docker-compose.intel.yml"
+elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
+    COMPOSE_FILE="docker-compose.arm.yml"
+else
+    echo "Unsupported architecture: $ARCH"
+    exit 1
+fi
+
+echo "Detected architecture: $ARCH"
+echo "Using Docker Compose file: $COMPOSE_FILE"
+
+echo "Starting docker-compose and building containers..."
+docker-compose -f $COMPOSE_FILE up --build -d
+
 echo "Monitoring Docker containers..." > $STATS_LOG
 
-# Function to collect stats and append to the log file with timestamp
 function collect_stats {
     echo "Collecting stats at $(date)..." >> $STATS_LOG
     docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}" >> $STATS_LOG
 }
 
-# Set simulation time in seconds and interval for stats collection in seconds
-SIMULATION_TIME=180  # 3 minutes
+SIMULATION_TIME=600  # 10 minutes
 INTERVAL=5  # Collect stats every 5 seconds
-
-# Calculate the number of iterations needed
 ITERATIONS=$((SIMULATION_TIME / INTERVAL))
 
-# Run the monitor for the calculated time, collecting stats at each interval
 for i in $(seq 1 $ITERATIONS); do
     collect_stats
     sleep $INTERVAL
 done
 
-# Stop docker-compose containers after simulation time
 echo "Stopping docker containers after $SIMULATION_TIME seconds of monitoring..."
-docker-compose down
+docker-compose -f $COMPOSE_FILE down
 
-# Summary report
 echo "Docker container monitoring completed. Logs saved in $STATS_LOG."

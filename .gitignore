@@ -1,6 +1,10 @@
 # General
 datasets/
 *.joblib
+*.png 
+*.jpg
+*.jpeg
+*.gif
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
