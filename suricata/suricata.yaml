@@ -17,6 +17,8 @@ af-packet:
   - interface: eth0
     use-ipv4: yes          # Ensure IPv4 is used
     use-ipv6: no           # Disable IPv6
+    threads: 4    # Increase threads based on available CPUs
+    ring-size: 200000  # Increase buffer size
     cluster-type: cluster_flow
     cluster-id: 99
     defrag: yes

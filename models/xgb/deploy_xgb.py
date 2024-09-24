@@ -3,7 +3,6 @@ import logging
 import joblib
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from collections import defaultdict
 
 filename = 'xgboost_binary_model'
 
@@ -24,13 +23,73 @@ batch_data = []
 ############ Helper Functions ############
 def _map_service(dest_port):
     service_port_mapping = {
-        20: 'ftp_data', 21: 'ftp', 22: 'ssh', 23: 'telnet', 25: 'smtp',
-        53: 'domain', 80: 'http', 110: 'pop_3', 111: 'sunrpc', 113: 'auth',
-        115: 'sftp', 119: 'nntp', 143: 'imap4', 161: 'snmp', 179: 'bgp',
-        443: 'http_443', 513: 'login', 514: 'shell', 587: 'smtp', 993: 'imap4',
-        995: 'pop_3', 1080: 'socks', 1524: 'ingreslock', 2049: 'nfs',
-        2121: 'ftp', 3306: 'mysql', 5432: 'postgresql', 6667: 'IRC',
-        8000: 'http', 8080: 'http'
+        194: 'IRC',            # Internet Relay Chat
+        6000: 'X11',           # X Window System
+        210: 'Z39_50',         # Z39.50 protocol
+        5190: 'aol',           # AOL Instant Messenger
+        113: 'auth',           # Authentication Service
+        179: 'bgp',            # Border Gateway Protocol
+        530: 'courier',        # RPC Courier service
+        105: 'csnet_ns',       # CSNET Name Service
+        84: 'ctf',             # Common Trace Facility
+        13: 'daytime',         # Daytime protocol
+        9: 'discard',          # Discard protocol
+        53: 'domain',          # DNS
+        53: 'domain_u',        # DNS (UDP)
+        7: 'echo',             # Echo protocol
+        7: 'eco_i',            # Echo protocol (ICMP)
+        7: 'ecr_i',            # Echo Reply (ICMP)
+        520: 'efs',            # Extended File System
+        512: 'exec',           # Remote Process Execution
+        79: 'finger',          # Finger protocol
+        21: 'ftp',             # FTP control
+        20: 'ftp_data',        # FTP data transfer
+        70: 'gopher',          # Gopher protocol
+        80: 'http',            # HTTP
+        2784: 'http_2784',     # HTTP (alternative port)
+        443: 'http_443',       # HTTPS
+        8001: 'http_8001',     # HTTP (alternative port)
+        143: 'imap4',          # IMAP (Internet Message Access Protocol)
+        102: 'iso_tsap',       # ISO Transport Service Access Point
+        543: 'klogin',         # Kerberos Login
+        544: 'kshell',         # Kerberos Remote Shell
+        389: 'ldap',           # Lightweight Directory Access Protocol
+        87: 'link',            # LINK protocol
+        513: 'login',          # Remote login
+        57: 'mtp',             # Message Transfer Protocol
+        42: 'name',            # Host Name Server
+        138: 'netbios_dgm',    # NetBIOS Datagram Service
+        137: 'netbios_ns',     # NetBIOS Name Service
+        139: 'netbios_ssn',    # NetBIOS Session Service
+        15: 'netstat',         # Network Statistics
+        433: 'nnsp',           # Network News Transfer Protocol over SSL
+        119: 'nntp',           # Network News Transfer Protocol
+        123: 'ntp_u',          # Network Time Protocol (UDP)
+        111: 'sunrpc',         # Sun Remote Procedure Call
+        514: 'shell',          # Remote Shell (RSH)
+        25: 'smtp',            # Simple Mail Transfer Protocol
+        1521: 'sql_net',       # Oracle SQL*Net
+        22: 'ssh',             # Secure Shell
+        111: 'sunrpc',         # Sun Remote Procedure Call
+        95: 'supdup',          # SUPDUP protocol
+        11: 'systat',          # System Status
+        23: 'telnet',          # Telnet protocol
+        69: 'tftp_u',          # Trivial File Transfer Protocol
+        37: 'time',            # Time protocol
+        4045: 'pm_dump',       # Process Monitoring
+        109: 'pop_2',          # Post Office Protocol version 2
+        110: 'pop_3',          # Post Office Protocol version 3
+        515: 'printer',        # Line Printer Daemon
+        9999: 'private',       # Private network (commonly user-assigned)
+        109: 'remote_job',     # Remote Job Entry
+        77: 'rje',             # Remote Job Entry
+        513: 'login',          # Remote Login (Kerberos)
+        67: 'urh_i',           # UDP Request Header (DHCP)
+        68: 'urp_i',           # UDP Response Header (DHCP)
+        540: 'uucp',           # Unix-to-Unix Copy Protocol
+        540: 'uucp_path',      # UUCP Path
+        175: 'vmnet',          # VMnet
+        43: 'whois'            # WHOIS protocol
     }
     return service_port_mapping.get(dest_port, 'other')
 
@@ -74,7 +133,6 @@ def _process_batch():
 
     features_list, metadata_list = zip(*batch_data)
     joblib_batch = np.array(features_list)
-
     joblib_batch_scaled = scaler.transform(joblib_batch)
 
     joblib_probabilities = model.predict_proba(joblib_batch_scaled)[:, 1]
@@ -96,6 +154,7 @@ def _process_log_entry(log_entry):
 
     src_ip = log_entry.get('src_ip')
     if src_ip is None:
+        logging.error(f"Missing src_ip in log entry: {log_entry}")
         return
 
     dest_port = log_entry.get('dest_port')
@@ -105,6 +164,9 @@ def _process_log_entry(log_entry):
 
     src_bytes = flow.get('bytes_toserver', 0)
     dst_bytes = flow.get('bytes_toclient', 0)
+
+    if src_bytes == 0 and dst_bytes == 0:
+        logging.warning(f"Missing bytes info. src_bytes: {src_bytes}, dst_bytes: {dst_bytes}")
 
     service = _map_service(dest_port) if dest_port else 'other'
     if proto == "ICMP":
@@ -146,4 +208,3 @@ def stream_suricata_logs(log_file_path='/var/log/suricata/eve.json'):
 
 if __name__ == "__main__":
     stream_suricata_logs()
-    

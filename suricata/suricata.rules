@@ -1,5 +1,0 @@
-# SYN Flood detection (any source and destination network, keeping port)
-alert tcp any any -> any 80 (msg:"Potential SYN Flood"; flags:S; threshold: type both, track by_src, count 5, seconds 10; sid:1000001;)
-
-# Slowloris HTTP Flood detection (any source and destination network, keeping port 80)
-alert http any any -> any 80 (msg:"Slowloris HTTP Flood"; flow:to_server, established; content:"GET"; nocase; threshold: type both, track by_src, count 10, seconds 10; sid:1000003;)
