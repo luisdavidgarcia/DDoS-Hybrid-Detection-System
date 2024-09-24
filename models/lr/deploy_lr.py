@@ -146,3 +146,4 @@ def stream_suricata_logs(log_file_path='/var/log/suricata/eve.json'):
 
 if __name__ == "__main__":
     stream_suricata_logs()
+    
