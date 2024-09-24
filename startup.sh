@@ -27,7 +27,7 @@ function collect_stats {
     docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}" >> $STATS_LOG
 }
 
-SIMULATION_TIME=600  # 10 minutes
+SIMULATION_TIME=120  # 10 minutes
 INTERVAL=5  # Collect stats every 5 seconds
 ITERATIONS=$((SIMULATION_TIME / INTERVAL))
 

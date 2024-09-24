@@ -1,15 +1,15 @@
+version: '3'
+
 services:
   nginx_web:
     image: nginx:latest
-    platform: linux/amd64
     container_name: nginx_web
     networks:
       shared_net:
         ipv4_address: 172.19.5.2
 
   suricata:
-    image: jasonish/suricata
-    platform: linux/amd64
+    image: jasonish/suricata:latest
     container_name: suricata
     depends_on:
       - nginx_web
@@ -23,8 +23,7 @@ services:
     command: /usr/bin/suricata -i eth0 -c /etc/suricata/suricata.yaml
 
   attacker1:
-    image: debian
-    platform: linux/amd64
+    image: debian:bullseye-slim
     container_name: attacker1
     command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 -S -p 80 172.19.5.2; sleep 1; done"
     networks:
@@ -32,8 +31,7 @@ services:
         ipv4_address: 172.19.5.3
 
   attacker2:
-    image: debian
-    platform: linux/amd64
+    image: debian:bullseye-slim
     container_name: attacker2
     command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --udp -p 80 172.19.5.2; sleep 1; done"
     networks:
@@ -42,7 +40,6 @@ services:
 
   attacker3:
     image: python:3.8-slim
-    platform: linux/amd64
     container_name: attacker3
     command: sh -c "pip install slowloris && slowloris 172.19.5.2"
     networks:
@@ -51,7 +48,6 @@ services:
 
   xgboost_model:
     image: tensorflow/tensorflow:latest
-    platform: linux/amd64
     container_name: xgboost_model
     networks:
       shared_net:
@@ -63,7 +59,6 @@ services:
 
   lr_model:
     image: tensorflow/tensorflow:latest
-    platform: linux/amd64
     container_name: lr_model
     networks:
       shared_net:
@@ -75,7 +70,6 @@ services:
 
   dt_model:
     image: tensorflow/tensorflow:latest
-    platform: linux/amd64
     container_name: dt_model
     networks:
       shared_net:
@@ -87,7 +81,6 @@ services:
 
   rf_model:
     image: tensorflow/tensorflow:latest
-    platform: linux/amd64
     container_name: rf_model
     networks:
       shared_net:
@@ -97,33 +90,8 @@ services:
       - ./logs:/var/log/suricata
     command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_rf.py"
 
-  ae_xgb_model:
-    image: armswdev/tensorflow-arm-neoverse
-    platform: linux/arm64
-    container_name: ae_xgb_model
-    networks:
-      shared_net:
-        ipv4_address: 172.19.5.10
-    volumes:
-      - ./models/ae_xgb:/models
-      - ./logs:/var/log/suricata
-    command: sh -c "pip install scikit-learn joblib numpy xgboost && python3 /models/deploy_aexgb.py"
-
-  cnn_lstm_model:
-    image: armswdev/tensorflow-arm-neoverse
-    platform: linux/arm64
-    container_name: cnn_lstm_model
-    networks:
-      shared_net:
-        ipv4_address: 172.19.5.11
-    volumes:
-      - ./models/cnn_lstm:/models
-      - ./logs:/var/log/suricata
-    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_cnn_lstm.py"
-
   legit1:
-    image: alpine
-    platform: linux/amd64
+    image: alpine:latest
     container_name: legit1
     command: sh -c "while true; do wget -qO- 172.19.5.2; sleep 5; done"
     networks:
@@ -131,8 +99,7 @@ services:
         ipv4_address: 172.19.5.12
 
   legit2:
-    image: alpine
-    platform: linux/amd64
+    image: alpine:latest
     container_name: legit2
     command: sh -c "while true; do wget -qO- 172.19.5.2; sleep 5; done"
     networks:

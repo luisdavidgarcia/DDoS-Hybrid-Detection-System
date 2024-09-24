@@ -18,8 +18,6 @@ service_encoder = joblib.load('/models/service_encoder.joblib')
 flag_encoder = joblib.load('/models/flag_encoder.joblib')
 scaler = joblib.load('/models/standard_scaler.joblib') 
 
-src_bytes_dict = defaultdict(int)
-diff_srv_rate_dict = defaultdict(set)
 batch_size = 64
 batch_data = []
 
@@ -54,21 +52,18 @@ def _map_tcp_flags(tcp_flags):
     else:
         return 'OTH'
 
-def _preprocess_features(service, flag, src_bytes, diff_srv_rate):
+def _preprocess_features(service, flag, src_bytes, dst_bytes):
     try:
         encoded_service = service_encoder.transform([service])[0]
     except ValueError:
-        logging.warning(f"Unknown service '{service}'. Skipping entry.")
         return None
 
     try:
         encoded_flag = flag_encoder.transform([flag])[0]
     except ValueError:
-        logging.debug(f"Unknown flag '{flag}'. Setting to 'OTH'.")
         encoded_flag = flag_encoder.transform(['OTH'])[0]
 
-    features = np.array([encoded_service, encoded_flag, src_bytes, diff_srv_rate])
-    logging.debug(f"Encoded features: {features}")
+    features = np.array([encoded_service, encoded_flag, src_bytes, dst_bytes])
     return features
 
 def _process_batch():
@@ -80,11 +75,7 @@ def _process_batch():
     features_list, metadata_list = zip(*batch_data)
     joblib_batch = np.array(features_list)
 
-    logging.debug(f"Batch before scaling: {joblib_batch}")
-
     joblib_batch_scaled = scaler.transform(joblib_batch)
-
-    logging.debug(f"Batch after scaling: {joblib_batch_scaled}")
 
     joblib_probabilities = model.predict_proba(joblib_batch_scaled)[:, 1]
     joblib_predictions = (joblib_probabilities >= 0.5).astype(int)
@@ -101,12 +92,10 @@ def _process_log_entry(log_entry):
 
     event_type = log_entry.get('event_type')
     if event_type == "stats":
-        logging.debug("Skipping stats log entry.")
         return
 
     src_ip = log_entry.get('src_ip')
     if src_ip is None:
-        logging.debug("Skipping log entry due to missing src_ip.")
         return
 
     dest_port = log_entry.get('dest_port')
@@ -114,24 +103,15 @@ def _process_log_entry(log_entry):
     flow = log_entry.get('flow', {})
     tcp = log_entry.get('tcp', {})
 
-    bytes_toserver = flow.get('bytes_toserver', 0)
+    src_bytes = flow.get('bytes_toserver', 0)
+    dst_bytes = flow.get('bytes_toclient', 0)
 
     service = _map_service(dest_port) if dest_port else 'other'
     if proto == "ICMP":
         service = "ecr_i"
     flag = _map_tcp_flags(tcp)
 
-    src_bytes = bytes_toserver
-    if src_ip and dest_port:
-        diff_srv_rate_dict[src_ip].add(dest_port)
-    diff_srv_rate = len(diff_srv_rate_dict[src_ip])
-
-    logging.debug(
-        f"Raw input - src_ip: {src_ip}, dest_port: {dest_port}, proto: {proto}, "
-        f"service: {service}, flag: {flag}, src_bytes: {src_bytes}, diff_srv_rate: {diff_srv_rate}"
-    )
-
-    preprocessed_features = _preprocess_features(service, flag, src_bytes, diff_srv_rate)
+    preprocessed_features = _preprocess_features(service, flag, src_bytes, dst_bytes)
     if preprocessed_features is not None:
         metadata = {
             'src_ip': src_ip,

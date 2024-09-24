@@ -13,8 +13,8 @@ outliers = {"0": 0, "1": 0}
 prediction_pattern = re.compile(r"Prediction: (\d)")
 src_ip_pattern = re.compile(r"'src_ip': '([\d\.]+)'")
 
-model_name = "AE-XGBoost" 
-path_to_log_file = f"/Users/lucky/GitHub/DDoS-Hybrid-Detection-System/models/ae_xgb/ae_xgb_model_binary_predictions.log"
+model_name = "Decision_Tree" 
+path_to_log_file = f"/Users/lucky/GitHub/DDoS-Hybrid-Detection-System/models/dt/decision_tree_binary_model_predictions.log"
 
 with open(path_to_log_file, "r") as log_data:
     for line in log_data.readlines():
@@ -107,6 +107,9 @@ plt.figure(figsize=(10, 6))
 bars_zero = plt.bar(x - 0.2, pred_zeros, 0.4, label='Prediction 0', hatch='//')
 bars_one = plt.bar(x + 0.2, pred_ones, 0.4, label='Prediction 1', hatch='\\')
 
+# Make veritcal axis longer to fit text
+plt.ylim(0, max(pred_zeros + pred_ones) + 500)
+
 for bar in bars_zero:
     yval = bar.get_height()
     plt.text(bar.get_x() + bar.get_width() / 2, yval + 50, int(yval), ha='center', va='bottom')  # ha: horizontal alignment
@@ -118,7 +121,7 @@ for bar in bars_one:
 plt.xticks(x, ips)
 plt.xlabel('IP Address')
 plt.ylabel('Number of Predictions')
-plt.title('Predictions by IP Address for Different Models')
+plt.title(f'Predictions by IP Address for {model_name}')
 plt.legend()
 
 plt.savefig(f'{model_name}_predictions_by_ip.png')
