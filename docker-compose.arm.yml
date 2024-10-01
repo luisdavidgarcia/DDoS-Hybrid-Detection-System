@@ -1,245 +1,17 @@
-# services:
-#   nginx_web:
-#     image: nginx:latest
-#     platform: linux/arm64
-#     container_name: nginx_web
-#     networks:
-#       shared_net:
-#         ipv4_address: 172.19.5.2
-
-#   suricata:
-#     image: jasonish/suricata:latest
-#     platform: linux/arm64
-#     container_name: suricata
-#     depends_on:
-#       - nginx_web
-#     network_mode: "container:nginx_web"
-#     cap_add:
-#       - NET_ADMIN
-#     volumes:
-#       - ./suricata/suricata.yaml:/etc/suricata/suricata.yaml
-#       - ./logs:/var/log/suricata
-#       - ./suricata/suricata.rules:/etc/suricata/rules/suricata.rules
-#     deploy:
-#       resources:
-#         limits:
-#           cpus: "2"    # Allocate 2 CPUs
-#           memory: "4G" # Allocate 4GB of memory
-#         reservations:
-#           memory: "2G" # Reserve 2GB of memory (minimum guaranteed)
-#     command: /usr/bin/suricata -i eth0 -c /etc/suricata/suricata.yaml
-
-#   # Models for DDoS Intrusion Detection
-#   xgboost_model:
-#     image: python:3.10-slim
-#     platform: linux/arm64
-#     container_name: xgboost_model
-#     networks:
-#       shared_net:
-#         ipv4_address: 172.19.5.6
-#     volumes:
-#       - ./models/xgb:/models
-#       - ./logs:/var/log/suricata
-#     command: sh -c "pip install scikit-learn joblib numpy xgboost && python3 /models/deploy_xgb.py"
-
-#   # lr_model:
-#   #   image: python:3.10-slim
-#   #   platform: linux/arm64
-#   #   container_name: lr_model
-#   #   networks:
-#   #     shared_net:
-#   #       ipv4_address: 172.19.5.7
-#   #   volumes:
-#   #     - ./models/lr:/models
-#   #     - ./logs:/var/log/suricata
-#   #   command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_lr.py"
-
-#   # dt_model:
-#   #   image: python:3.10-slim
-#   #   platform: linux/arm64
-#   #   container_name: dt_model
-#   #   networks:
-#   #     shared_net:
-#   #       ipv4_address: 172.19.5.8
-#   #   volumes:
-#   #     - ./models/dt:/models
-#   #     - ./logs:/var/log/suricata
-#   #   command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_dt.py"
-
-#   # rf_model:
-#   #   image: python:3.10-slim
-#   #   platform: linux/arm64
-#   #   container_name: rf_model
-#   #   networks:
-#   #     shared_net:
-#   #       ipv4_address: 172.19.5.9
-#   #   volumes:
-#   #     - ./models/rf:/models
-#   #     - ./logs:/var/log/suricata
-#   #   command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_rf.py"
-
-#   # ae_xgb_model:
-#   #   image: armswdev/tensorflow-arm-neoverse
-#   #   platform: linux/arm64
-#   #   container_name: ae_xgb_model
-#   #   networks:
-#   #     shared_net:
-#   #       ipv4_address: 172.19.5.10
-#   #   volumes:
-#   #     - ./models/ae_xgb:/models
-#   #     - ./logs:/var/log/suricata
-#   #   command: sh -c "pip install scikit-learn joblib numpy xgboost && python3 /models/deploy_aexgb.py"
-
-#   # cnn_lstm_model:
-#   #   image: armswdev/tensorflow-arm-neoverse
-#   #   platform: linux/arm64
-#   #   container_name: cnn_lstm_model
-#   #   networks:
-#   #     shared_net:
-#   #       ipv4_address: 172.19.5.11
-#   #   volumes:
-#   #     - ./models/cnn_lstm:/models
-#   #     - ./logs:/var/log/suricata
-#   #   command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_cnn_lstm.py"
-
-#   # Legitimate Traffic
-#   # legit_http:
-#   #   image: alpine:latest
-#   #   platform: linux/arm64
-#   #   container_name: legit_http
-#   #   command: sh -c "while true; do wget -qO- http://172.19.5.2; sleep $((RANDOM % 10 + 1)); done"
-#   #   networks:
-#   #     shared_net:
-#   #       ipv4_address: 172.19.5.12
-
-#   # legit_https:
-#   #   image: alpine:latest
-#   #   platform: linux/arm64
-#   #   container_name: legit_https
-#   #   command: sh -c "while true; do wget -qO- https://172.19.5.2; sleep $((RANDOM % 15 + 1)); done"
-#   #   networks:
-#   #     shared_net:
-#   #       ipv4_address: 172.19.5.13
-
-#   legit_ftp:
-#     image: alpine:latest
-#     platform: linux/arm64
-#     container_name: legit_ftp
-#     command: sh -c "while true; do nc -zv 172.19.5.2 21; sleep $((RANDOM % 10 + 3)); done"
-#     networks:
-#       shared_net:
-#         ipv4_address: 172.19.5.14
-
-#   legit_ssh:
-#     image: alpine:latest
-#     platform: linux/arm64
-#     container_name: legit_ssh
-#     command: sh -c "while true; do nc -zv 172.19.5.2 22; sleep $((RANDOM % 10 + 5)); done"
-#     networks:
-#       shared_net:
-#         ipv4_address: 172.19.5.15
-
-#   legit_dns:
-#     image: alpine:latest
-#     platform: linux/arm64
-#     container_name: legit_dns
-#     command: sh -c "while true; do nc -zvu 172.19.5.2 53; sleep $((RANDOM % 20 + 3)); done"
-#     networks:
-#       shared_net:
-#         ipv4_address: 172.19.5.16
-
-#   legit_smtp:
-#     image: alpine:latest
-#     platform: linux/arm64
-#     container_name: legit_smtp
-#     command: sh -c "while true; do nc -zv 172.19.5.2 25; sleep $((RANDOM % 12 + 5)); done"
-#     networks:
-#       shared_net:
-#         ipv4_address: 172.19.5.17
-
-#   legit_pop3:
-#     image: alpine:latest
-#     platform: linux/arm64
-#     container_name: legit_pop3
-#     command: sh -c "while true; do nc -zv 172.19.5.2 110; sleep $((RANDOM % 15 + 7)); done"
-#     networks:
-#       shared_net:
-#         ipv4_address: 172.19.5.18
-
-#   legit_imap:
-#     image: alpine:latest
-#     platform: linux/arm64
-#     container_name: legit_imap
-#     command: sh -c "while true; do nc -zv 172.19.5.2 143; sleep $((RANDOM % 20 + 5)); done"
-#     networks:
-#       shared_net:
-#         ipv4_address: 172.19.5.19
-
-#   # DDoS/DoS Attacks
-#   slowloris_attack:
-#     image: python:3.8-slim
-#     platform: linux/arm64
-#     container_name: slowloris_attack
-#     command: sh -c "pip install slowloris && slowloris 172.19.5.2"
-#     networks:
-#       shared_net:
-#         ipv4_address: 172.19.5.20
-
-#   neptune_attack:
-#     image: debian:bullseye-slim
-#     platform: linux/arm64
-#     container_name: neptune_attack
-#     command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 -S -p 80 172.19.5.2 --flood; sleep $((RANDOM % 30 + 20)); done"
-#     networks:
-#       shared_net:
-#         ipv4_address: 172.19.5.21
-
-#   smurf_attack:
-#     image: debian:bullseye-slim
-#     platform: linux/arm64
-#     container_name: smurf_attack
-#     command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --icmp 172.19.5.2 --flood; sleep $((RANDOM % 20 + 15)); done"
-#     networks:
-#       shared_net:
-#         ipv4_address: 172.19.5.22
-
-#   pod_attack:
-#     image: debian:bullseye-slim
-#     platform: linux/arm64
-#     container_name: pod_attack
-#     command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 -1 -d 65535 172.19.5.2; sleep $((RANDOM % 30 + 20)); done"
-#     networks:
-#       shared_net:
-#         ipv4_address: 172.19.5.23
-
-#   udpstorm_attack:
-#     image: debian:bullseye-slim
-#     platform: linux/arm64
-#     container_name: udpstorm_attack
-#     command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --udp -p 80 172.19.5.2 --flood; sleep $((RANDOM % 35 + 25)); done"
-#     networks:
-#       shared_net:
-#         ipv4_address: 172.19.5.24
-
-# networks:
-#   shared_net:
-#     driver: bridge
-#     ipam:
-#       config:
-#         - subnet: 172.19.5.0/24
-
 services:
   nginx_web:
     image: nginx:latest
-    platform: linux/amd64
+    platform: linux/arm64
     container_name: nginx_web
     networks:
       shared_net:
         ipv4_address: 172.19.5.2
+    volumes:
+      - ./nginx/www:/usr/share/nginx/html
 
   suricata:
     image: jasonish/suricata
-    platform: linux/amd64
+    platform: linux/arm64
     container_name: suricata
     depends_on:
       - nginx_web
@@ -252,9 +24,9 @@ services:
       - ./suricata/suricata.rules:/etc/suricata/rules/suricata.rules
     command: /usr/bin/suricata -i eth0 -c /etc/suricata/suricata.yaml
 
+  # Attacking containers for different neptune-like attacks
   attacker1:
-    image: debian
-    platform: linux/amd64
+    image: debian:bullseye-slim
     container_name: attacker1
     command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 -S -p 80 172.19.5.2; sleep 1; done"
     networks:
@@ -262,82 +34,200 @@ services:
         ipv4_address: 172.19.5.3
 
   attacker2:
-    image: debian
-    platform: linux/amd64
+    image: debian:bullseye-slim
     container_name: attacker2
-    command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --udp -p 80 172.19.5.2; sleep 1; done"
+    command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --udp -p 53 172.19.5.2; sleep 1; done"
     networks:
       shared_net:
         ipv4_address: 172.19.5.4
 
-  attacker3:
-    image: python:3.8-slim
-    platform: linux/amd64
-    container_name: attacker3
-    command: sh -c "pip install slowloris && slowloris 172.19.5.2"
-    networks:
-      shared_net:
-        ipv4_address: 172.19.5.5
+  # attacker3:
+  #   image: python:3.8-slim
+  #   container_name: attacker3
+  #   command: sh -c "pip install slowloris && slowloris 172.19.5.2"
+  #   networks:
+  #     shared_net:
+  #       ipv4_address: 172.19.5.5
 
-  xgboost_model:
-    image: tensorflow/tensorflow:latest
-    platform: linux/amd64
-    container_name: xgboost_model
+  # attacker_echo:
+  #   image: debian
+  #   platform: linux/arm64
+  #   container_name: attacker_echo
+  #   command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --syn --destport 7 172.19.5.2; sleep 1; done"
+  #   networks:
+  #     shared_net:
+  #       ipv4_address: 172.19.5.5
+
+  attacker_efs:
+    image: debian
+    platform: linux/arm64
+    container_name: attacker_efs
+    command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --rst --destport 520 172.19.5.2; sleep 1; done"
     networks:
       shared_net:
         ipv4_address: 172.19.5.6
-    volumes:
-      - ./models/xgb:/models
-      - ./logs:/var/log/suricata
-    command: sh -c "pip install scikit-learn joblib numpy xgboost && python3 /models/deploy_xgb.py"
 
-  lr_model:
-    image: tensorflow/tensorflow:latest
-    platform: linux/amd64
-    container_name: lr_model
-    networks:
-      shared_net:
-        ipv4_address: 172.19.5.7
-    volumes:
-      - ./models/lr:/models
-      - ./logs:/var/log/suricata
-    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_lr.py"
+  # attacker_exec:
+  #   image: debian
+  #   platform: linux/arm64
+  #   container_name: attacker_exec
+  #   command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --syn --count 10000 --destport 512 --flood 172.19.5.2; sleep 1; done"
+  #   networks:
+  #     shared_net:
+  #       ipv4_address: 172.19.5.5
 
-  dt_model:
-    image: tensorflow/tensorflow:latest
-    platform: linux/amd64
-    container_name: dt_model
-    networks:
-      shared_net:
-        ipv4_address: 172.19.5.8
-    volumes:
-      - ./models/dt:/models
-      - ./logs:/var/log/suricata
-    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_dt.py"
+  # attacker_finger:
+  #   image: debian
+  #   platform: linux/arm64
+  #   container_name: attacker_finger
+  #   command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --syn --count 10000 --destport 79 --flood 172.19.5.2; sleep 1; done"
+  #   networks:
+  #     shared_net:
+  #       ipv4_address: 172.19.5.6
 
-  rf_model:
-    image: tensorflow/tensorflow:latest
-    platform: linux/amd64
-    container_name: rf_model
-    networks:
-      shared_net:
-        ipv4_address: 172.19.5.9
-    volumes:
-      - ./models/rf:/models
-      - ./logs:/var/log/suricata
-    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_rf.py"
+  # attacker_ftp_data:
+  #   image: debian
+  #   platform: linux/arm64
+  #   container_name: attacker_ftp_data
+  #   command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --syn --count 10000 --destport 20 --flood 172.19.5.2; sleep 1; done"
+  #   networks:
+  #     shared_net:
+  #       ipv4_address: 172.19.5.7
 
-  ae_xgb_model:
-    image: armswdev/tensorflow-arm-neoverse
+  # attacker_gopher:
+  #   image: debian
+  #   platform: linux/arm64
+  #   container_name: attacker_gopher
+  #   command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --syn --count 10000 --destport 70 --flood 172.19.5.2; sleep 1; done"
+  #   networks:
+  #     shared_net:
+  #       ipv4_address: 172.19.5.8
+
+  # attacker_hostnames:
+  #   image: debian
+  #   platform: linux/arm64
+  #   container_name: attacker_hostnames
+  #   command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --syn --count 10000 --destport 101 --flood 172.19.5.2; sleep 1; done"
+  #   networks:
+  #     shared_net:
+  #       ipv4_address: 172.19.5.9
+
+  # Normal traffic containers with different services and flags
+  # normal_irc_rsto:
+  #   image: alpine
+  #   platform: linux/arm64
+  #   container_name: normal_irc_rsto
+  #   command: sh -c "while true; do wget -qO- 172.19.5.2:19; sleep 5; done"
+  #   networks:
+  #     shared_net:
+  #       ipv4_address: 172.19.5.10
+
+  # normal_irc_sf:
+  #   image: alpine
+  #   platform: linux/arm64
+  #   container_name: normal_irc_sf
+  #   command: sh -c "while true; do wget -qO- 172.19.5.2:22; sleep 5; done"
+  #   networks:
+  #     shared_net:
+  #       ipv4_address: 172.19.5.11
+
+  # normal_http_sf:
+  #   image: alpine
+  #   platform: linux/arm64
+  #   container_name: normal_http_sf
+  #   command: sh -c "while true; do wget -qO- 172.19.5.2:80; sleep 5; done"
+  #   networks:
+  #     shared_net:
+  #       ipv4_address: 172.19.5.12
+
+  # normal_ftp_sf:
+  #   image: alpine
+  #   platform: linux/arm64
+  #   container_name: normal_ftp_sf
+  #   command: sh -c "while true; do wget -qO- 172.19.5.2:21; sleep 5; done"
+  #   networks:
+  #     shared_net:
+  #       ipv4_address: 172.19.5.13
+
+  # normal_telnet_sf:
+  #   image: alpine
+  #   platform: linux/arm64
+  #   container_name: normal_telnet_sf
+  #   command: sh -c "while true; do wget -qO- 172.19.5.2:23; sleep 5; done"
+  #   networks:
+  #     shared_net:
+  #       ipv4_address: 172.19.5.14
+
+  # normal_smtp_sf:
+  #   image: alpine
+  #   platform: linux/arm64
+  #   container_name: normal_smtp_sf
+  #   command: sh -c "while true; do wget -qO- 172.19.5.2:25; sleep 5; done"
+  #   networks:
+  #     shared_net:
+  #       ipv4_address: 172.19.5.15
+
+  # normal_finger_sf:
+  #   image: alpine
+  #   platform: linux/arm64
+  #   container_name: normal_finger_sf
+  #   command: sh -c "while true; do wget -qO- 172.19.5.2:79; sleep 5; done"
+  #   networks:
+  #     shared_net:
+  #       ipv4_address: 172.19.5.16
+
+  # http_client:
+  #   image: alpine
+  #   platform: linux/arm64
+  #   container_name: http_client
+  #   command: sh -c "while true; do wget -qO- http://172.19.5.2; sleep 2; done"
+  #   networks:
+  #     shared_net:
+  #       ipv4_address: 172.19.5.20
+  http_client:
+    image: alpine
     platform: linux/arm64
-    container_name: ae_xgb_model
+    container_name: http_client
+    command: sh -c "while true; do wget -qO- http://172.19.5.2/small.html; sleep 2; wget -qO- http://172.19.5.2/medium.html; sleep 2; done"
     networks:
       shared_net:
-        ipv4_address: 172.19.5.10
-    volumes:
-      - ./models/ae_xgb:/models
-      - ./logs:/var/log/suricata
-    command: sh -c "pip install scikit-learn joblib numpy xgboost && python3 /models/deploy_aexgb.py"
+        ipv4_address: 172.19.5.20
+
+  curl_client:
+    image: alpine
+    platform: linux/arm64
+    container_name: curl_client
+    command: >
+      sh -c "
+        apk add --no-cache curl && 
+        while true; do
+          # GET request
+          curl -s http://172.19.5.2
+          sleep 2
+        done"
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.22
+
+
+  # Model deployment containers
+  # xgboost_model:
+  #   image: python:3.10-slim
+  #   platform: linux/arm64
+  #   container_name: xgboost_model
+  #   volumes:
+  #     - ./models/xgb:/models
+  #     - ./logs:/var/log/suricata
+  #   command: sh -c "pip install scikit-learn joblib numpy xgboost && python3 /models/deploy_xgb.py"
+
+  # random_forest_model:
+  #   image: python:3.10-slim
+  #   platform: linux/arm64
+  #   container_name: random_forest_model
+  #   volumes:
+  #     - ./models/rf:/models
+  #     - ./logs:/var/log/suricata
+  #   command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_rf.py"
 
   cnn_lstm_model:
     image: armswdev/tensorflow-arm-neoverse
@@ -350,24 +240,6 @@ services:
       - ./models/cnn_lstm:/models
       - ./logs:/var/log/suricata
     command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_cnn_lstm.py"
-
-  legit1:
-    image: alpine
-    platform: linux/amd64
-    container_name: legit1
-    command: sh -c "while true; do wget -qO- 172.19.5.2; sleep 5; done"
-    networks:
-      shared_net:
-        ipv4_address: 172.19.5.12
-
-  legit2:
-    image: alpine
-    platform: linux/amd64
-    container_name: legit2
-    command: sh -c "while true; do wget -qO- 172.19.5.2; sleep 5; done"
-    networks:
-      shared_net:
-        ipv4_address: 172.19.5.13
 
 networks:
   shared_net:

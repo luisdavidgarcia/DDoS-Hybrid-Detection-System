@@ -1,11 +1,9 @@
 %YAML 1.1
 ---
 
-# Suricata Configuration File for DDoS Testbed
-
 # General configuration
 vars:
-  # Define home net to be the internal subnet (adjusted to 172.19.5.0/24)
+  # Define home net to be the internal subnet
   address-groups:
     HOME_NET: "[172.19.5.0/24]"
     EXTERNAL_NET: "$HOME_NET"
@@ -15,14 +13,15 @@ default-log-dir: /var/log/suricata  # Where the logs will be stored
 # Capture interface - using AF_PACKET for live capture
 af-packet:
   - interface: eth0
-    use-ipv4: yes          # Ensure IPv4 is used
-    use-ipv6: no           # Disable IPv6
-    threads: 4    # Increase threads based on available CPUs
-    ring-size: 200000  # Increase buffer size
+    use-ipv4: yes
+    use-ipv6: no
+    threads: 4
+    ring-size: 1048576  # Increase buffer size for high packet volume
     cluster-type: cluster_flow
     cluster-id: 99
     defrag: yes
     use-mmap: yes
+    mmap-buffer-size: 536870912  # 512MB buffer for memory-mapped packet processing
 
 # Logging Configuration for Suricata's internal logs
 logging:
@@ -39,19 +38,21 @@ outputs:
       enabled: yes
       filetype: regular
       filename: /var/log/suricata/eve.json
-      community-id: yes
+      community-id: no  # Disable community ID if it's not needed
       types:
-        - alert:
-            metadata: yes
-            tags: yes
-            flow: yes
-        - http:
-            extended: yes
-        - tls:
-            extended: yes
-        - drop
-        - icmp
-        - flow
+        - drop  # Log dropped packets only (useful to catch SYN flood drops)
+        - flow:  # Log only essential fields in the flow
+            fields:
+              - flow_id
+              - proto
+              - src_ip
+              - src_port
+              - dest_ip
+              - dest_port
+              - tcp_flags
+              - app_proto
+              - flow_bytes_toserver
+              - flow_bytes_toclient
 
 # Alerting based on Suricata's default rules
 rule-files:
@@ -62,22 +63,24 @@ threading:
   set-cpu-affinity: yes
   cpu-affinity:
     - management-cpu-set:
-        cpu: [ 0 ]  # Use core 0 for management threads
-
+        cpu: [ 0 ]  # Core 0 for management threads
     - receive-cpu-set:
-        cpu: [ "all" ]  # Use all available CPUs for packet threads
+        cpu: [ 1, 2, 3, 4 ]  # Distribute packet processing threads to multiple cores
+    - detect-cpu-set:
+        cpu: [ 5-7 ]  # Use remaining cores for detection threads
 
   detect-thread-ratio: 1.0
 
 # Threshold configuration to avoid overwhelming logs
 threshold:
-  limit: 50
-  track: by_src
-  type: limit
+  - type: both
+    track: by_src
+    count: 100
+    seconds: 60
 
 # Performance tuning for packet processing
 detect-engine:
   - profile: high
     custom-values:
-      max-pending-packets: 10000
-      prealloc-packets: 10000
+      max-pending-packets: 30000  # Increase pending packets for high traffic
+      prealloc-packets: 30000
