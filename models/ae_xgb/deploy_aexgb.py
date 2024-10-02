@@ -6,7 +6,7 @@ import tensorflow as tf
 from sklearn.preprocessing import StandardScaler
 from collections import defaultdict
 
-filename = 'ae_xgb_model_binary'
+filename = 'ae_xgb_binary_model'
 
 logging.basicConfig(
     filename=f'{filename}_predictions.log',
