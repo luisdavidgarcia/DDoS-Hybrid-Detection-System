@@ -34,16 +34,20 @@ fi
 # Determine the compose file based on architecture and scenario
 if [ "$ARCH" = "x86_64" ]; then
     COMPOSE_FILE="docker-compose.intel.scenario$SCENARIO.yml"
+    ML_DOCKERFILE="Dockerfile.ml_base"
+    DL_DOCKERFILE="Dockerfile.dl_base_intel"
 elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
     COMPOSE_FILE="docker-compose.arm.scenario$SCENARIO.yml"
+    ML_DOCKERFILE="Dockerfile.ml_base"
+    DL_DOCKERFILE="Dockerfile.dl_base"
 else
     echo "Unsupported architecture: $ARCH"
     exit 1
 fi
 
 # Check and build images if they don't exist
-check_and_build_image "ml_base_image" "Dockerfile.ml_base"
-check_and_build_image "dl_base_image" "Dockerfile.dl_base"
+check_and_build_image "ml_base_image" "$ML_DOCKERFILE"
+check_and_build_image "dl_base_image" "$DL_DOCKERFILE"
 
 echo "Detected architecture: $ARCH"
 echo "Using Docker Compose file: $COMPOSE_FILE"

@@ -15,8 +15,8 @@ prediction_pattern = re.compile(r"Prediction: (\d)")
 src_ip_pattern = re.compile(r"'src_ip': '([\d\.]+)'")
 
 # Extract model name from the path to the log file
-path_to_log_file = "/Users/lucky/GitHub/DDoS-Hybrid-Detection-System/scenario2_mac/decision_tree_binary_model_predictions.log"
-model_name = "Decision_Tree"
+path_to_log_file = "/Users/lucky/GitHub/DDoS-Hybrid-Detection-System/scenario1_mac/random_forest_binary_model_predictions.log"
+model_name = "Random_Forest"
 
 # Generate timestamp
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -24,8 +24,8 @@ timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 # Define ground truth IP sets based on your specifications
 server_ip = "172.19.5.2"  # Exclude this IP from analysis
 
-attack_ips = {f"172.19.5.{i}" for i in range(3, 8)}  # Attackers: 172.19.5.3 - 172.19.5.6
-legitimate_ips = {f"172.19.5.{i}" for i in range(20, 23)}  # Legitimate: 172.19.5.17 - 172.19.5.18
+attack_ips = {f"172.19.5.{i}" for i in range(3, 7)}  # Attackers: 172.19.5.3 - 172.19.5.6
+legitimate_ips = {f"172.19.5.{i}" for i in range(7, 9)}  # Legitimate: 172.19.5.17 - 172.19.5.18
 
 # Read the log file and process each line
 with open(path_to_log_file, "r") as log_data:
@@ -124,7 +124,7 @@ plt.figure(figsize=(12, 6))
 bars_zero = plt.bar(x - 0.2, pred_zeros, 0.4, label='Prediction 0 (Normal)', hatch='//')
 bars_one = plt.bar(x + 0.2, pred_ones, 0.4, label='Prediction 1 (Attack)', hatch='\\')
 
-plt.ylim(0, max(pred_zeros + pred_ones) + 10)  # Adjust vertical axis to fit labels
+plt.ylim(0, max(pred_zeros + pred_ones) + 300)  # Adjust vertical axis to fit labels
 
 for bar in bars_zero + bars_one:
     yval = bar.get_height()

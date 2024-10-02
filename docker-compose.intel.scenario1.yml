@@ -2,7 +2,6 @@ services:
   # Web server and network monitoring containers
   nginx_web:
     image: nginx:latest
-    platform: linux/arm64
     container_name: nginx_web
     networks:
       shared_net:
@@ -13,7 +12,6 @@ services:
   # Network monitoring containers
   suricata:
     image: jasonish/suricata
-    platform: linux/arm64
     container_name: suricata
     depends_on:
       - nginx_web
@@ -29,7 +27,6 @@ services:
   # Attacking containers
   attacker_syn:
     image: debian:bullseye-slim
-    platform: linux/arm64
     container_name: attacker_syn
     command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 -S -p 80 -i 1 172.19.5.2; done"
     networks:
@@ -38,7 +35,6 @@ services:
 
   attacker_udp:
     image: debian:bullseye-slim
-    platform: linux/arm64
     container_name: attacker_udp
     command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --udp -p 53 -i 1 172.19.5.2; done"
     networks:
@@ -47,7 +43,6 @@ services:
 
   attacker_efs:
     image: debian:bullseye-slim
-    platform: linux/arm64
     container_name: attacker_efs
     command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --rst --destport 520 -i 1 172.19.5.2; done"
     networks:
@@ -56,7 +51,6 @@ services:
 
   attacker_ftp_data:
     image: debian:bullseye-slim
-    platform: linux/arm64
     container_name: attacker_ftp_data
     command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --rst --destport 20 -i 1 172.19.5.2; done"
     networks:
@@ -66,7 +60,6 @@ services:
   # Legitimate traffic containers
   http_client:
     image: alpine
-    platform: linux/arm64
     container_name: http_client
     command: sh -c "while true; do wget -qO- http://172.19.5.2/small.html; sleep 2; wget -qO- http://172.19.5.2/medium.html; sleep 2; done"
     networks:
@@ -75,7 +68,6 @@ services:
 
   curl_client:
     image: alpine
-    platform: linux/arm64
     container_name: curl_client
     command: >
       sh -c "
@@ -91,7 +83,6 @@ services:
   # Traditional ML Models using ml_base_image
   xgboost_model:
     image: ml_base_image
-    platform: linux/arm64
     container_name: xgboost_model
     volumes:
       - ./models/xgb:/models
@@ -103,7 +94,6 @@ services:
 
   random_forest_model:
     image: ml_base_image
-    platform: linux/arm64
     container_name: random_forest_model
     volumes:
       - ./models/rf:/models
@@ -115,7 +105,6 @@ services:
 
   decision_tree_model:
     image: ml_base_image
-    platform: linux/arm64
     container_name: decision_tree_model
     volumes:
       - ./models/dt:/models
@@ -127,7 +116,6 @@ services:
 
   logistic_regression_model:
     image: ml_base_image
-    platform: linux/arm64
     container_name: logistic_regression_model
     volumes:
       - ./models/lr:/models
@@ -139,8 +127,7 @@ services:
 
   # Deep Learning Models using dl_base_image
   ae_xgboost_model:
-    image: dl_base_image
-    platform: linux/arm64
+    image: dl_base_image_intel
     container_name: ae_xgboost_model
     volumes:
       - ./models/ae_xgb:/models
@@ -151,8 +138,7 @@ services:
         ipv4_address: 172.19.5.13
 
   cnn_lstm_model:
-    image: dl_base_image
-    platform: linux/arm64
+    image: dl_base_image_intel
     container_name: cnn_lstm_model
     volumes:
       - ./models/cnn_lstm:/models
