@@ -14,8 +14,9 @@ predictions_by_ip = defaultdict(lambda: {"0": 0, "1": 0})
 prediction_pattern = re.compile(r"Prediction: (\d)")
 src_ip_pattern = re.compile(r"'src_ip': '([\d\.]+)'")
 
-model_name = "CNN-LSTM" 
-path_to_log_file = "/Users/lucky/GitHub/DDoS-Hybrid-Detection-System/models/cnn_lstm/cnn_lstm_model_binary_predictions.log"
+# Extract model name from the path to the log file
+path_to_log_file = "/Users/lucky/GitHub/DDoS-Hybrid-Detection-System/scenario2_mac/decision_tree_binary_model_predictions.log"
+model_name = "Decision_Tree"
 
 # Generate timestamp
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -23,8 +24,8 @@ timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 # Define ground truth IP sets based on your specifications
 server_ip = "172.19.5.2"  # Exclude this IP from analysis
 
-attack_ips = {f"172.19.5.{i}" for i in range(3, 7)}  # Attackers: 172.19.5.3 - 172.19.5.6
-legitimate_ips = {f"172.19.5.{i}" for i in range(17, 19)}  # Legitimate: 172.19.5.17 - 172.19.5.18
+attack_ips = {f"172.19.5.{i}" for i in range(3, 8)}  # Attackers: 172.19.5.3 - 172.19.5.6
+legitimate_ips = {f"172.19.5.{i}" for i in range(20, 23)}  # Legitimate: 172.19.5.17 - 172.19.5.18
 
 # Read the log file and process each line
 with open(path_to_log_file, "r") as log_data:
@@ -101,6 +102,13 @@ with open(results_txt_file, "w") as f:
     for ip in sorted(predictions_by_ip.keys(), key=lambda x: [int(octet) for octet in x.split('.')]):
         counts = predictions_by_ip[ip]
         f.write(f"IP: {ip}, Prediction 0: {counts['0']}, Prediction 1: {counts['1']}\n")
+    # Print confusion matrix nicely
+    f.write(f"\nConfusion Matrix:\n")
+    f.write(f"True Positives (Attack): {TP}\n")
+    f.write(f"False Positives (Attack): {FP}\n")
+    f.write(f"True Negatives (Normal): {TN}\n")
+    f.write(f"False Negatives (Normal): {FN}\n\n")
+    f.write(f"[{TN} {FP}]\n[{FN} {TP}]\n\n")
 
 print(f"Results saved to {results_txt_file}")
 
@@ -133,23 +141,3 @@ plt.tight_layout()
 # Save the predictions plot
 plt.savefig(predictions_plot_filename)
 print(f"Predictions plot saved to {predictions_plot_filename}")
-
-plt.show()
-
-# Plotting Confusion Matrix
-conf_matrix = np.array([[TN, FP],
-                        [FN, TP]])
-
-plt.figure(figsize=(6, 5))
-sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues',
-            xticklabels=['Normal (0)', 'Attack (1)'],
-            yticklabels=['Normal (0)', 'Attack (1)'])
-plt.title(f'Confusion Matrix - {model_name}')
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-
-# Save the confusion matrix plot
-plt.savefig(confusion_matrix_plot_filename)
-print(f"Confusion matrix plot saved to {confusion_matrix_plot_filename}")
-
-plt.show()

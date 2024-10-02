@@ -8,7 +8,7 @@ ARCH=$(uname -m)
 if [ "$ARCH" = "x86_64" ]; then
     COMPOSE_FILE="docker-compose.intel.yml"
 elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
-    COMPOSE_FILE="docker-compose.arm.yml"
+    COMPOSE_FILE="docker-compose.arm.scenario2.yml"
 else
     echo "Unsupported architecture: $ARCH"
     exit 1
@@ -27,7 +27,7 @@ function collect_stats {
     docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}" >> $STATS_LOG
 }
 
-SIMULATION_TIME=120  # 10 minutes
+SIMULATION_TIME=600  # 10 minutes
 INTERVAL=5  # Collect stats every 5 seconds
 ITERATIONS=$((SIMULATION_TIME / INTERVAL))
 
