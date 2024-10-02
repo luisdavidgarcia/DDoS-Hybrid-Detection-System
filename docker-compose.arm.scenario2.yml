@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # Web server and network monitoring containers
   nginx_web:
     image: nginx:latest
     platform: linux/arm64
@@ -27,9 +28,10 @@ services:
       - ./suricata/suricata.rules:/etc/suricata/rules/suricata.rules
     command: /usr/bin/suricata -i eth0 -c /etc/suricata/suricata.yaml
 
-  # Attack containers (set 2)
+  # Attack containers
   attacker_ssh:
     image: debian:bullseye-slim
+    platform: linux/arm64
     container_name: attacker_ssh
     command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 -S --destport 22 -i 1 172.19.5.2; done"
     networks:
@@ -38,6 +40,7 @@ services:
 
   attacker_http_443:
     image: debian:bullseye-slim
+    platform: linux/arm64
     container_name: attacker_http_443
     command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 -S --destport 443 -i 1 172.19.5.2; done"
     networks:
@@ -46,6 +49,7 @@ services:
 
   attacker_pop3:
     image: debian:bullseye-slim
+    platform: linux/arm64
     container_name: attacker_pop3
     command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 -S --destport 110 -i 1 172.19.5.2; done"
     networks:
@@ -54,13 +58,14 @@ services:
 
   attacker_smtp:
     image: debian:bullseye-slim
+    platform: linux/arm64
     container_name: attacker_smtp
     command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 -S --destport 25 -i 1 172.19.5.2; done"
     networks:
       shared_net:
         ipv4_address: 172.19.5.6
 
-  # Legitimate containers
+  # Legitimate traffic containers
   http_client:
     image: alpine
     platform: linux/arm64
@@ -85,60 +90,79 @@ services:
       shared_net:
         ipv4_address: 172.19.5.8
 
-  # Model deployment containers
+  # Traditional ML Models using ml_base_image
   xgboost_model:
-    image: python:3.10-slim
+    image: ml_base_image
     platform: linux/arm64
     container_name: xgboost_model
     volumes:
       - ./models/xgb:/models
       - ./logs:/var/log/suricata
-    command: sh -c "pip install scikit-learn joblib numpy xgboost && python3 /models/deploy_xgb.py"
+    command: python3 /models/deploy_xgb.py
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.9
 
   random_forest_model:
-    image: python:3.10-slim
+    image: ml_base_image
     platform: linux/arm64
     container_name: random_forest_model
     volumes:
       - ./models/rf:/models
       - ./logs:/var/log/suricata
-    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_rf.py"
+    command: python3 /models/deploy_rf.py
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.10
 
   decision_tree_model:
-    image: python:3.10-slim
+    image: ml_base_image
     platform: linux/arm64
     container_name: decision_tree_model
     volumes:
       - ./models/dt:/models
       - ./logs:/var/log/suricata
-    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_dt.py"
+    command: python3 /models/deploy_dt.py
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.11
 
   logistic_regression_model:
-    image: python:3.10-slim
+    image: ml_base_image
     platform: linux/arm64
     container_name: logistic_regression_model
     volumes:
       - ./models/lr:/models
       - ./logs:/var/log/suricata
-    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_lr.py"
+    command: python3 /models/deploy_lr.py
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.12
 
+  # Deep Learning Models using dl_base_image
   ae_xgboost_model:
-    image: armswdev/tensorflow-arm-neoverse
+    image: dl_base_image
     platform: linux/arm64
     container_name: ae_xgboost_model
     volumes:
       - ./models/ae_xgb:/models
       - ./logs:/var/log/suricata
-    command: sh -c "pip install scikit-learn joblib numpy xgboost && python3 /models/deploy_aexgb.py"
+    command: python3 /models/deploy_aexgb.py
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.13
 
   cnn_lstm_model:
-    image: armswdev/tensorflow-arm-neoverse
+    image: dl_base_image
     platform: linux/arm64
     container_name: cnn_lstm_model
     volumes:
       - ./models/cnn_lstm:/models
       - ./logs:/var/log/suricata
-    command: sh -c "pip install scikit-learn joblib numpy && python3 /models/deploy_cnn_lstm.py"
+    command: python3 /models/deploy_cnn_lstm.py
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.14
 
 networks:
   shared_net:

@@ -1,0 +1,8 @@
+# Base Dockerfile for traditional ML models including XGBoost
+FROM python:3.10-slim
+
+# Install necessary Python libraries including XGBoost
+RUN pip install --no-cache-dir scikit-learn joblib numpy xgboost
+
+# Set the working directory for the models
+WORKDIR /models

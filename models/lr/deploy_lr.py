@@ -7,15 +7,15 @@ from sklearn.preprocessing import StandardScaler
 filename = 'logistic_regression_binary_model'
 
 logging.basicConfig(
-    filename=f'/models/{filename}_predictions.log',
+    filename=f'{filename}_predictions.log',
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-model = joblib.load(f'/models/{filename}.joblib')
-service_encoder = joblib.load('/models/service_encoder.joblib')
-flag_encoder = joblib.load('/models/flag_encoder.joblib')
-scaler = joblib.load('/models/standard_scaler.joblib') 
+model = joblib.load(f'{filename}.joblib')
+service_encoder = joblib.load('service_encoder.joblib')
+flag_encoder = joblib.load('flag_encoder.joblib')
+scaler = joblib.load('standard_scaler.joblib') 
 
 batch_size = 64
 batch_data = []

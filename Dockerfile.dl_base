@@ -1,0 +1,8 @@
+# Base Dockerfile for deep learning models
+FROM armswdev/tensorflow-arm-neoverse
+
+# Install necessary Python libraries for deep learning models
+RUN pip install --no-cache-dir scikit-learn joblib numpy xgboost
+
+# Set the working directory for the models
+WORKDIR /models

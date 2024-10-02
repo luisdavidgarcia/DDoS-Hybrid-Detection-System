@@ -9,16 +9,16 @@ from collections import defaultdict
 filename = 'ae_xgb_model_binary'
 
 logging.basicConfig(
-    filename=f'/models/{filename}_predictions.log',
+    filename=f'{filename}_predictions.log',
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-model = joblib.load(f'/models/{filename}.joblib')
-encoder_model = tf.keras.models.load_model('/models/encoder_model.keras')
-service_encoder = joblib.load('/models/service_encoder.joblib')
-flag_encoder = joblib.load('/models/flag_encoder.joblib')
-scaler = joblib.load('/models/standard_scaler.joblib') 
+model = joblib.load(f'{filename}.joblib')
+encoder_model = tf.keras.models.load_model('encoder_model.keras')
+service_encoder = joblib.load('service_encoder.joblib')
+flag_encoder = joblib.load('flag_encoder.joblib')
+scaler = joblib.load('standard_scaler.joblib') 
 
 batch_size = 64
 batch_data = []
