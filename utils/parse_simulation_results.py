@@ -158,7 +158,7 @@ def save_results_to_path(path_to_save_results, model_name, timestamp, TP, TN, FP
     bars_zero = plt.bar(x - 0.2, pred_zeros, 0.4, label='Prediction 0 (Normal)', hatch='//')
     bars_one = plt.bar(x + 0.2, pred_ones, 0.4, label='Prediction 1 (Attack)', hatch='\\')
 
-    plt.ylim(0, max(pred_zeros + pred_ones) + 1000)  # Adjust vertical axis to fit labels
+    plt.ylim(0, max(pred_zeros + pred_ones) + 300)  # Adjust vertical axis to fit labels
 
     for bar in bars_zero + bars_one:
         yval = bar.get_height()
@@ -176,6 +176,7 @@ def save_results_to_path(path_to_save_results, model_name, timestamp, TP, TN, FP
     plt.savefig(os.path.join(path_to_save_results, predictions_plot_filename))
     print(f"Predictions plot saved to {os.path.join(path_to_save_results, predictions_plot_filename)}")
 
+
 # Process log files for each model and save results for each platform
 for i, model_name in enumerate(model_names):
     # Process log files
@@ -184,12 +185,21 @@ for i, model_name in enumerate(model_names):
     accuracy, precision, recall, f1_score = calculate_final_metrics(TP, TN, FP, FN)
     save_results_to_path(windows_path_to_save_results, model_name, timestamp, TP, TN, FP, FN, accuracy, precision, recall, f1_score)
 
+    # Reset predictions_by_ip for the next model
+    predictions_by_ip = defaultdict(lambda: {"0": 0, "1": 0})
+
     process_log_file(linux_path_to_log_file[i])
     TP, TN, FP, FN = calculate_metrics_by_ip()
     accuracy, precision, recall, f1_score = calculate_final_metrics(TP, TN, FP, FN)
     save_results_to_path(linux_path_to_save_results, model_name, timestamp, TP, TN, FP, FN, accuracy, precision, recall, f1_score)
 
+    # Reset predictions_by_ip for the next model
+    predictions_by_ip = defaultdict(lambda: {"0": 0, "1": 0})
+
     process_log_file(mac_path_to_log_file[i])
     TP, TN, FP, FN = calculate_metrics_by_ip()
     accuracy, precision, recall, f1_score = calculate_final_metrics(TP, TN, FP, FN)
     save_results_to_path(mac_path_to_save_results, model_name, timestamp, TP, TN, FP, FN, accuracy, precision, recall, f1_score)
+
+    # Reset predictions_by_ip for the next model
+    predictions_by_ip = defaultdict(lambda: {"0": 0, "1": 0})
