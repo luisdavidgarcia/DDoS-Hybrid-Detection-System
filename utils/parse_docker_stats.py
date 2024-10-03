@@ -5,12 +5,12 @@ import itertools
 import os
 
 # Ensure the 'plots' directory exists
-output_dir = 'plots'
+output_dir = 'docker_stats_plots'
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 # Read the CSV data into a DataFrame
-csv_file_path = '/Users/lucky/GitHub/DDoS-Hybrid-Detection-System/scenario1_mac/docker_stats_20241001_221722.csv'
+csv_file_path = '/Users/lucky/GitHub/DDoS-Hybrid-Detection-System/logs/scenario1_windows_10-02-2024/docker_stats_20241002_011850.csv'
 df = pd.read_csv(csv_file_path)
 
 # Replace attacker1 with attacker_syn and attacker2 with attacker_udp

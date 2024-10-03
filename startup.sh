@@ -53,7 +53,7 @@ echo "Detected architecture: $ARCH"
 echo "Using Docker Compose file: $COMPOSE_FILE"
 
 echo "Starting docker-compose and building containers..."
-docker-compose -f $COMPOSE_FILE up --build -d
+docker compose -f $COMPOSE_FILE up --build -d
 
 # Create the CSV file with headers
 echo "Timestamp,Container Name,CPU Usage (%),Memory Usage,Net I/O" > $STATS_LOG
@@ -78,6 +78,6 @@ for i in $(seq 1 $ITERATIONS); do
 done
 
 echo "Stopping docker containers after $SIMULATION_TIME seconds of monitoring..."
-docker-compose -f $COMPOSE_FILE down
+docker compose -f $COMPOSE_FILE down
 
 echo "Docker container monitoring completed. Stats saved in $STATS_LOG."
