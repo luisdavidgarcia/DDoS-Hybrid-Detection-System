@@ -49,6 +49,11 @@ fi
 check_and_build_image "ml_base_image" "$ML_DOCKERFILE"
 check_and_build_image "dl_base_image" "$DL_DOCKERFILE"
 
+# Check that the NGINX directory exists
+if [ ! -d "nginx" ]; then
+    sh ./scripts/generate_files.sh 
+fi
+
 echo "Detected architecture: $ARCH"
 echo "Using Docker Compose file: $COMPOSE_FILE"
 

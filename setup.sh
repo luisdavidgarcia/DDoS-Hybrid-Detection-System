@@ -25,3 +25,7 @@ conda install -c conda-forge numpy pandas matplotlib imbalanced-learn psutil sea
 
 echo "Conda environment '$ENV_NAME' has been set up with all dependencies."
 echo "Activate the environment using: conda activate $ENV_NAME"
+
+# Create the directory for Nginx files
+echo "Creating the directory for Nginx files..."
+sh ./scripts/generate_files.sh

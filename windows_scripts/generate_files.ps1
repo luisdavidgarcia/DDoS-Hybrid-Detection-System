@@ -1,5 +1,5 @@
 # Create the directory for Nginx files
-$nginxDir = "./nginx/www"
+$nginxDir = "../nginx/www"
 if (-not (Test-Path $nginxDir)) {
     New-Item -Path $nginxDir -ItemType Directory
 }
