@@ -3,9 +3,10 @@ import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
 import itertools
 import os
+import math
 
 # Ensure the 'plots' directory exists
-output_dir = 'docker_stats_plots'
+output_dir = 'docker_stats_plots_windows'
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
@@ -59,6 +60,27 @@ df['Net I/O Received'] = df['Net I/O Received'].apply(convert_net_io)
 # Convert the Timestamp column to datetime
 df['Timestamp'] = pd.to_datetime(df['Timestamp'])
 
+# Find global min and max for CPU, Memory, and Net I/O across all containers
+cpu_min, cpu_max = df['CPU Usage (%)'].min(), df['CPU Usage (%)'].max()
+mem_min, mem_max = df['Memory Usage'].min(), df['Memory Usage'].max()
+net_io_sent_min, net_io_sent_max = df['Net I/O Sent'].min(), df['Net I/O Sent'].max()
+net_io_received_min, net_io_received_max = df['Net I/O Received'].min(), df['Net I/O Received'].max()
+
+# Find global min and max for CPU, Memory, and Net I/O across all containers
+cpu_min, cpu_max = df['CPU Usage (%)'].min(), df['CPU Usage (%)'].max()
+mem_min, mem_max = df['Memory Usage'].min(), df['Memory Usage'].max()
+net_io_sent_min, net_io_sent_max = df['Net I/O Sent'].min(), df['Net I/O Sent'].max()
+net_io_received_min, net_io_received_max = df['Net I/O Received'].min(), df['Net I/O Received'].max()
+
+# Round max values to the next higher number as per your request
+# cpu_max = math.ceil(cpu_max / 10) * 10  # Round CPU to the next 10% (i.e., 90%)
+# mem_max = math.ceil(mem_max / 100) * 100  # Round Memory to the next 100 MiB (i.e., 300 MiB)
+# net_io_max = math.ceil(max(net_io_sent_max, net_io_received_max) / 100000) * 100000  # Round Net I/O to the next 100000 kB (i.e., 300000 kB)
+
+cpu_max = 120
+mem_max = 300
+net_io_max = 300000
+
 # List of unique containers
 containers = df['Container Name'].unique()
 
@@ -77,6 +99,7 @@ for container in containers:
     plt.title(f'CPU Usage (%) for {container}')
     plt.xlabel('Timestamp')
     plt.ylabel('CPU Usage (%)')
+    plt.ylim(cpu_min, cpu_max)  # Set the same y-axis range for all CPU plots
     plt.gca().xaxis.set_major_formatter(DateFormatter('%Y-%m-%d %H:%M:%S'))
     plt.xticks(rotation=45)
     plt.tight_layout()
@@ -89,6 +112,7 @@ for container in containers:
     plt.title(f'Memory Usage (MiB) for {container}')
     plt.xlabel('Timestamp')
     plt.ylabel('Memory Usage (MiB)')
+    plt.ylim(mem_min, mem_max)  # Set the same y-axis range for all Memory plots
     plt.gca().xaxis.set_major_formatter(DateFormatter('%Y-%m-%d %H:%M:%S'))
     plt.xticks(rotation=45)
     plt.tight_layout()
@@ -102,6 +126,7 @@ for container in containers:
     plt.title(f'Network I/O (kB) for {container}')
     plt.xlabel('Timestamp')
     plt.ylabel('Net I/O (kB)')
+    plt.ylim(min(net_io_sent_min, net_io_received_min), max(net_io_sent_max, net_io_received_max))  # Set the same y-axis range for all Net I/O plots
     plt.gca().xaxis.set_major_formatter(DateFormatter('%Y-%m-%d %H:%M:%S'))
     plt.xticks(rotation=45)
     plt.legend(loc='center right', ncol=1)
