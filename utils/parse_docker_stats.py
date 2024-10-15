@@ -6,12 +6,12 @@ import os
 import math
 
 # Ensure the 'plots' directory exists
-output_dir = 'docker_stats_plots_windows'
+output_dir = 'docker_stats_plots_mac'
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 # Read the CSV data into a DataFrame
-csv_file_path = '/Users/lucky/GitHub/DDoS-Hybrid-Detection-System/logs/scenario1_windows_10-02-2024/docker_stats_20241002_011850.csv'
+csv_file_path = '/Users/lucky/GitHub/DDoS-Hybrid-Detection-System/logs/scenario1_mac_10-01-2024/docker_stats_20241001_221722.csv'
 df = pd.read_csv(csv_file_path)
 
 # Replace attacker1 with attacker_syn and attacker2 with attacker_udp
@@ -53,9 +53,13 @@ def convert_net_io(net_io_str):
         return float(net_io_str)  # No unit specified, assume bytes and convert to kB
 
 # Process Net I/O (handle both Sent and Received columns)
-df[['Net I/O Sent', 'Net I/O Received']] = df['Net I/O'].str.split(' / ', expand=True)
-df['Net I/O Sent'] = df['Net I/O Sent'].apply(convert_net_io)
+# df[['Net I/O Sent', 'Net I/O Received']] = df['Net I/O'].str.split(' / ', expand=True)
+# df['Net I/O Sent'] = df['Net I/O Sent'].apply(convert_net_io)
+# df['Net I/O Received'] = df['Net I/O Received'].apply(convert_net_io)
+
+df[['Net I/O Received', 'Net I/O Sent']] = df['Net I/O'].str.split(' / ', expand=True)
 df['Net I/O Received'] = df['Net I/O Received'].apply(convert_net_io)
+df['Net I/O Sent'] = df['Net I/O Sent'].apply(convert_net_io)
 
 # Convert the Timestamp column to datetime
 df['Timestamp'] = pd.to_datetime(df['Timestamp'])
