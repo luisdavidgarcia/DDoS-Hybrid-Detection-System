@@ -5,17 +5,17 @@ import json
 import time
 
 # Filename
-operating_system = 'mac'
+operating_system = 'windows'
 date_timestamp = time.strftime('%Y%m%d_%H%M%S')
 filename = f'docker_stats_summary_{operating_system}_{date_timestamp}.json'
 
 # Ensure the 'metrics' directory exists
-metrics_dir = '/Users/lucky/GitHub/DDoS-Hybrid-Detection-System/logs/scenario1_mac_10-01-2024'
+metrics_dir = '/Users/lucky/GitHub/DDoS-Hybrid-Detection-System/logs/scenario1_windows_10-02-2024'
 if not os.path.exists(metrics_dir):
     os.makedirs(metrics_dir)
 
 # Read the CSV data into a DataFrame
-csv_file_path = '/Users/lucky/GitHub/DDoS-Hybrid-Detection-System/logs/scenario1_mac_10-01-2024/docker_stats_20241001_221722.csv'
+csv_file_path = '/Users/lucky/GitHub/DDoS-Hybrid-Detection-System/logs/scenario1_windows_10-02-2024/docker_stats_20241002_011850.csv'
 df = pd.read_csv(csv_file_path)
 
 # Replace attacker1 with attacker_syn and attacker2 with attacker_udp
@@ -40,7 +40,7 @@ def convert_memory_usage(mem_str):
 
     return convert(used_memory), convert(total_memory)
 
-# Apply the conversion function to the Memory Usage column (this handles both used and total memory)
+# Apply the conversion function to the Memory Usage column
 df[['Memory Usage', 'Total Memory']] = df['Memory Usage'].apply(lambda x: pd.Series(convert_memory_usage(x)))
 
 # Function to convert Net I/O units to kilobytes (kB)
@@ -56,10 +56,14 @@ def convert_net_io(net_io_str):
     else:
         return float(net_io_str)  # No unit specified, assume bytes and convert to kB
 
-# Process Net I/O (handle both Sent and Received columns)
-df[['Net I/O Sent', 'Net I/O Received']] = df['Net I/O'].str.split(' / ', expand=True)
-df['Net I/O Sent'] = df['Net I/O Sent'].apply(convert_net_io)
+# Process Net I/O (handle both Received and Sent columns)
+df[['Net I/O Received', 'Net I/O Sent']] = df['Net I/O'].str.split(' / ', expand=True)
 df['Net I/O Received'] = df['Net I/O Received'].apply(convert_net_io)
+df['Net I/O Sent'] = df['Net I/O Sent'].apply(convert_net_io)
+
+# Calculate the rate of change (difference between consecutive rows) for Net I/O
+df['Net I/O Received Rate'] = df.groupby('Container Name')['Net I/O Received'].diff().fillna(0)
+df['Net I/O Sent Rate'] = df.groupby('Container Name')['Net I/O Sent'].diff().fillna(0)
 
 # List of unique containers
 containers = df['Container Name'].unique()
@@ -85,18 +89,20 @@ for container in containers:
             'Min': container_df['Memory Usage'].min(),
             'Std Dev': container_df['Memory Usage'].std()
         },
-        'Net I/O Sent (kB)': {
-            'Average': container_df['Net I/O Sent'].mean(),
-            'Max': container_df['Net I/O Sent'].max(),
-            'Min': container_df['Net I/O Sent'].min(),
-            'Std Dev': container_df['Net I/O Sent'].std()
+        'Net I/O Sent Rate (kB)': {
+            'Average': container_df['Net I/O Sent Rate'].mean(),
+            'Max': container_df['Net I/O Sent Rate'].max(),
+            'Min': container_df['Net I/O Sent Rate'].min(),
+            'Std Dev': container_df['Net I/O Sent Rate'].std()
         },
-        'Net I/O Received (kB)': {
-            'Average': container_df['Net I/O Received'].mean(),
-            'Max': container_df['Net I/O Received'].max(),
-            'Min': container_df['Net I/O Received'].min(),
-            'Std Dev': container_df['Net I/O Received'].std()
-        }
+        'Net I/O Received Rate (kB)': {
+            'Average': container_df['Net I/O Received Rate'].mean(),
+            'Max': container_df['Net I/O Received Rate'].max(),
+            'Min': container_df['Net I/O Received Rate'].min(),
+            'Std Dev': container_df['Net I/O Received Rate'].std()
+        },
+        'Cumulative Net I/O Sent (kB)': container_df['Net I/O Sent'].iloc[-1],
+        'Cumulative Net I/O Received (kB)': container_df['Net I/O Received'].iloc[-1]
     }
 
 # Save the metrics summary to a JSON file
