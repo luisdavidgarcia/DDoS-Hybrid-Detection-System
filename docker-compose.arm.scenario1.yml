@@ -10,7 +10,6 @@ services:
     volumes:
       - ./nginx/www:/usr/share/nginx/html
   
-  # Network monitoring containers
   suricata:
     image: jasonish/suricata
     platform: linux/arm64
@@ -162,6 +161,7 @@ services:
       shared_net:
         ipv4_address: 172.19.5.14
 
+# Network configuration
 networks:
   shared_net:
     driver: bridge

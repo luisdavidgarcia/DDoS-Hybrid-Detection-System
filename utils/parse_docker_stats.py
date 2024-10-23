@@ -50,12 +50,7 @@ def convert_net_io(net_io_str):
     elif 'B' in net_io_str:
         return float(net_io_str.rstrip('B')) / 1024  # Convert Bytes to kB
     else:
-        return float(net_io_str)  # No unit specified, assume bytes and convert to kB
-
-# Process Net I/O (handle both Sent and Received columns)
-# df[['Net I/O Sent', 'Net I/O Received']] = df['Net I/O'].str.split(' / ', expand=True)
-# df['Net I/O Sent'] = df['Net I/O Sent'].apply(convert_net_io)
-# df['Net I/O Received'] = df['Net I/O Received'].apply(convert_net_io)
+        return float(net_io_str)  # Given in bytes, but convert to kB
 
 df[['Net I/O Received', 'Net I/O Sent']] = df['Net I/O'].str.split(' / ', expand=True)
 df['Net I/O Received'] = df['Net I/O Received'].apply(convert_net_io)
@@ -75,11 +70,6 @@ cpu_min, cpu_max = df['CPU Usage (%)'].min(), df['CPU Usage (%)'].max()
 mem_min, mem_max = df['Memory Usage'].min(), df['Memory Usage'].max()
 net_io_sent_min, net_io_sent_max = df['Net I/O Sent'].min(), df['Net I/O Sent'].max()
 net_io_received_min, net_io_received_max = df['Net I/O Received'].min(), df['Net I/O Received'].max()
-
-# Round max values to the next higher number as per your request
-# cpu_max = math.ceil(cpu_max / 10) * 10  # Round CPU to the next 10% (i.e., 90%)
-# mem_max = math.ceil(mem_max / 100) * 100  # Round Memory to the next 100 MiB (i.e., 300 MiB)
-# net_io_max = math.ceil(max(net_io_sent_max, net_io_received_max) / 100000) * 100000  # Round Net I/O to the next 100000 kB (i.e., 300000 kB)
 
 cpu_max = 120
 mem_max = 300
@@ -103,7 +93,7 @@ for container in containers:
     plt.title(f'CPU Usage (%) for {container}')
     plt.xlabel('Timestamp')
     plt.ylabel('CPU Usage (%)')
-    plt.ylim(cpu_min, cpu_max)  # Set the same y-axis range for all CPU plots
+    plt.ylim(cpu_min, cpu_max)
     plt.gca().xaxis.set_major_formatter(DateFormatter('%Y-%m-%d %H:%M:%S'))
     plt.xticks(rotation=45)
     plt.tight_layout()
@@ -116,7 +106,7 @@ for container in containers:
     plt.title(f'Memory Usage (MiB) for {container}')
     plt.xlabel('Timestamp')
     plt.ylabel('Memory Usage (MiB)')
-    plt.ylim(mem_min, mem_max)  # Set the same y-axis range for all Memory plots
+    plt.ylim(mem_min, mem_max)
     plt.gca().xaxis.set_major_formatter(DateFormatter('%Y-%m-%d %H:%M:%S'))
     plt.xticks(rotation=45)
     plt.tight_layout()
@@ -130,7 +120,7 @@ for container in containers:
     plt.title(f'Network I/O (kB) for {container}')
     plt.xlabel('Timestamp')
     plt.ylabel('Net I/O (kB)')
-    plt.ylim(min(net_io_sent_min, net_io_received_min), max(net_io_sent_max, net_io_received_max))  # Set the same y-axis range for all Net I/O plots
+    plt.ylim(min(net_io_sent_min, net_io_received_min), max(net_io_sent_max, net_io_received_max)) 
     plt.gca().xaxis.set_major_formatter(DateFormatter('%Y-%m-%d %H:%M:%S'))
     plt.xticks(rotation=45)
     plt.legend(loc='center right', ncol=1)
