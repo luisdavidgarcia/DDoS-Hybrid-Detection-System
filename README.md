@@ -1,5 +1,11 @@
 # Docker DDoS Testbed: Machine Learning & Deep Learning Model Deployment
 
+## Reference to Complete MacOS, Linux, and Windows Results
+
+For a detailed account of my research and findings, please refer to my Master's Thesis hosted on the Cal Poly Digital Commons which contains appendices for each:
+
+[**My Thesis on Botnet Detection with Deep Learning**](https://digitalcommons.calpoly.edu/theses/2930/)
+
 ## Introduction
 
 This project aims to provide a lightweight and simple testbed for Distributed Denial of Service (DDoS) detection using various machine learning and deep learning models. The testbed is based on Docker, which allows for the easy deployment and testing of pre-trained models. The testbed is designed to be simpler than network emulation tools like GNS3 or Mininet but effective enough to test model performance in detecting DDoS attacks.
