@@ -56,7 +56,7 @@ Once the environment is set up, you can deploy and test machine learning models 
 1. Ensure Docker is running on your system.
 2. Deploy the testbed using Docker Compose:
    ```sh
-   docker-compose up
+   docker compose up
    ```
 
 3. The testbed will automatically set up the environment and run DDoS detection using the pre-configured machine learning models.
@@ -73,17 +73,6 @@ This will load the dataset, preprocess it, and then evaluate the models' effecti
 
 ## Additional Information
 
-### Contributing
-
-Contributions are welcome! Please follow these steps to contribute:
-
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature-branch`).
-3. Make your changes.
-4. Commit your changes (`git commit -m 'Add new feature'`).
-5. Push to the branch (`git push origin feature-branch`).
-6. Open a pull request.
-
 ### License
 
 This project is licensed under the GNU License. See the LICENSE file for details.
@@ -95,6 +84,3 @@ Common issues and solutions:
 - **Docker Issues:** Ensure Docker is running correctly, and all containers are built without errors.
 - **Model Prediction Errors:** Ensure that the dataset provided is correctly formatted and compatible with the pre-trained models.
 
-### Contact
-
-For questions or support, please open an issue in the repository or contact the project maintainer.
