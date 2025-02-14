@@ -19,25 +19,19 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-SCENARIO=$1
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 STATS_LOG="logs/docker_stats_$TIMESTAMP.csv"
 
 # Detect system architecture
 ARCH=$(uname -m)
 
-if [ "$SCENARIO" != "1" ] && [ "$SCENARIO" != "2" ]; then
-    echo "Invalid scenario. Please select scenario 1 or 2."
-    exit 1
-fi
-
 # Determine the compose file based on architecture and scenario
 if [ "$ARCH" = "x86_64" ]; then
-    COMPOSE_FILE="docker-compose.intel.scenario$SCENARIO.yml"
+    COMPOSE_FILE="docker-compose.intel.yml"
     ML_DOCKERFILE="Dockerfile.ml_base"
     DL_DOCKERFILE="Dockerfile.dl_base_intel"
 elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
-    COMPOSE_FILE="docker-compose.arm.scenario$SCENARIO.yml"
+    COMPOSE_FILE="docker-compose.arm.yml"
     ML_DOCKERFILE="Dockerfile.ml_base"
     DL_DOCKERFILE="Dockerfile.dl_base"
 else
