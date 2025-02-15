@@ -2,11 +2,16 @@ import json
 import logging
 import joblib
 import numpy as np
-import tensorflow as tf
+import os
 from sklearn.preprocessing import StandardScaler
 from collections import defaultdict
 from enum import Enum
 from typing import Dict, Optional
+
+try:
+    import tensorflow as tf
+except ImportError:
+    logging.warning("TensorFlow not imported.")
 
 class TCPState(Enum):
     S0 = "S0"   # Connection attempt seen, no reply
@@ -83,7 +88,7 @@ class BaseModel:
     def __init__(
         self, 
         is_ml_model: bool = True,
-        is_autoencoder: bool = False,
+        is_hybrid: bool = False,
         model_path: str = None,
         encoder_model_path: str = None,
         scaler_path: str = None,
@@ -94,22 +99,45 @@ class BaseModel:
     ):
         self.encoder = None
         self.probability_ratio = probability_ratio
+        self.is_ml_model = is_ml_model
+        self.is_hybrid = is_hybrid
 
-        if is_autoencoder:
+        if is_hybrid:
             self.encoder = tf.keras.models.load_model(encoder_model_path)
-
-        if not is_ml_model and not is_autoencoder:
-            self.model = tf.keras.models.load_model(model_path)
-        else:
             self.model = joblib.load(model_path)
-        
+        elif is_ml_model:
+            self.model = joblib.load(model_path)
+        else:
+            self.model = tf.keras.models.load_model(model_path)
+
         self.scaler = joblib.load(scaler_path)
         self.flag_encoder = joblib.load(flag_encoder_path)
         self.service_encoder = joblib.load(service_encoder_path)
         self.batch_size = batch_size
         self.batch_data = []
     
-    def process_log_entry(self, log_entry):
+    def stream_suricata_logs(self, log_file_path='/var/log/suricata/eve.json'):
+        """Stream and process Suricata log entries"""
+        logging.info(f"Starting to monitor: {log_file_path}")
+        try:
+            with open(log_file_path, 'r') as log_file:
+                log_file.seek(0, os.SEEK_END)
+                logging.info("Successfully opened Suricata log file")
+                while True:
+                    line = log_file.readline()
+                    if line:
+                        try:
+                            log_entry = json.loads(line)
+                            self._process_log_entry(log_entry)
+                        except json.JSONDecodeError:
+                            logging.error(f"JSONDecodeError: {line.strip()}")
+                            continue
+                    else:
+                        continue
+        except Exception as e:
+            logging.error(f"Error in stream_suricata_logs: {str(e)}")
+    
+    def _process_log_entry(self, log_entry):
         event_type = log_entry.get('event_type')
         if event_type != "flow":
             return
@@ -153,21 +181,21 @@ class BaseModel:
     def _map_tcp_flags(self, tcp_flags, flow_state, flow_reason):
         if not tcp_flags:
             if flow_state == "new" and flow_reason == "timeout":
-                return TCPState.S0
-            return TCPState.OTH
+                return TCPState.S0.value
+            return TCPState.OTH.value
 
         if tcp_flags.get('syn') and not tcp_flags.get('ack'):
             if flow_state == "new" and flow_reason == "timeout":
-                return TCPState.S0
-            return TCPState.S1
+                return TCPState.S0.value
+            return TCPState.S1.value
         
         if tcp_flags.get('syn') and tcp_flags.get('ack'):
-            return TCPState.SF
+            return TCPState.SF.value
         
         if tcp_flags.get('rst'):
-            return TCPState.REJ
+            return TCPState.REJ.value
         
-        return TCPState.OTH
+        return TCPState.OTH.value
 
     def _preprocess_features(self, service, flag, src_bytes, dst_bytes):
         try:
@@ -178,7 +206,7 @@ class BaseModel:
         try:
             encoded_flag = self.flag_encoder.transform([flag])[0]
         except ValueError:
-            encoded_flag = self.flag_encoder.transform([TCPState.OTH])[0]
+            encoded_flag = self.flag_encoder.transform([TCPState.OTH.value])[0]
 
         features = np.array([encoded_service, encoded_flag, src_bytes, dst_bytes])
         return features
@@ -189,32 +217,32 @@ class BaseModel:
 
         features_list, metadata_list = zip(*self.batch_data)
         batch = np.array(features_list)
-        batch_scaled = scaler.transform(batch)
+        batch_scaled = self.scaler.transform(batch)
 
-        predictions = self._get_predictions(batch_scaled)
+        predictions, probabilities = self._get_predictions(batch, batch_scaled)
 
-        for prediction, probability, features, metadata in zip(joblib_predictions, 
-            joblib_probabilities, joblib_batch_scaled, metadata_list):
+        for prediction, probability, features, metadata in zip(predictions, 
+            probabilities, batch_scaled, metadata_list):
             logging.info(
                 f"Prediction: {prediction}, Probability: {probability:.4f}, Features: {features.tolist()}, Metadata: {metadata}"
             )
 
         self.batch_data.clear()
 
-    def _get_predictions(self, batch_scaled):
-        if self.is_autoencoder:
+    def _get_predictions(self, batch, batch_scaled):
+        if self.is_hybrid:
             batch_reshaped = batch_scaled.reshape((
                 batch_scaled.shape[0], 
                 batch_scaled.shape[1], 
                 1
             ))
             encoded_features = self.encoder.predict(batch_reshaped)
-            reshaped_batch = encoded_features.reshape((
+            batch_scaled = encoded_features.reshape((
                 encoded_features.shape[0], 
                 -1
             ))
 
-        if not self.is_ml_model and not self.is_autoencoder:
+        if not self.is_ml_model and not self.is_hybrid:
             reshaped_batch = batch_scaled.reshape((
                 batch.shape[0], 
                 batch.shape[1], 
@@ -222,6 +250,6 @@ class BaseModel:
             ))
             probabilities = self.model.predict(reshaped_batch).flatten() 
         else:        
-            probabilities = self.model.predict(encoded_features_flat) 
+            probabilities = self.model.predict(batch_scaled) 
 
-        return (probabilities >= self.probability_ratio).astype(int)
+        return (probabilities >= self.probability_ratio).astype(int), probabilities
