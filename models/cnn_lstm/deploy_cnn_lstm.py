@@ -1,9 +1,14 @@
 import json
 import logging
 import os
-from ..base.base_model import BaseModel
+import sys
 
-filename = 'cnn_lstm_binary_model'
+sys.path.append('/models')
+
+from base.base_model import BaseModel
+
+filename = 'cnn_lstm/cnn_lstm_binary_model'
+os.makedirs(os.path.dirname(f'/models/{filename}_predictions.log'), exist_ok=True)
 
 logging.basicConfig(
     filename=f'{filename}_predictions.log',
@@ -12,12 +17,12 @@ logging.basicConfig(
 )
 
 model = BaseModel(
-    is_autoencoder=False,
+    is_hybrid=False,
     is_ml_model=False,
-    model_path=f'{filename}.joblib',
-    scaler_path='standard_scaler.joblib',
-    flag_encoder_path='flag_encoder.joblib',
-    service_encoder_path='service_encoder.joblib',
+    model_path=f'{filename}.keras',
+    scaler_path='cnn_lstm/standard_scaler.joblib',
+    flag_encoder_path='cnn_lstm/flag_encoder.joblib',
+    service_encoder_path='cnn_lstm/service_encoder.joblib',
     batch_size=64
 )
 
@@ -30,7 +35,7 @@ def stream_suricata_logs(log_file_path='/var/log/suricata/eve.json'):
             if line:
                 try:
                     log_entry = json.loads(line)
-                    _process_log_entry(log_entry)
+                    model.process_log_entry(log_entry)
                 except json.JSONDecodeError:
                     logging.error(f"JSONDecodeError: {line.strip()}")
                     continue

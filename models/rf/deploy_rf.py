@@ -1,41 +1,28 @@
-import json
+import sys
 import logging
-import os
-from ..base.base_model import BaseModel
 
-filename = 'random_forest_binary_model'
-
-logging.basicConfig(
-    filename=f'{filename}_predictions.log',
-    level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-
-model = BaseModel(
-    is_autoencoder=False,
-    is_ml_model=True,
-    model_path=f'{filename}.joblib',
-    scaler_path='standard_scaler.joblib',
-    flag_encoder_path='flag_encoder.joblib',
-    service_encoder_path='service_encoder.joblib',
-    batch_size=64
-)
-
-############ Main Function ############
-def stream_suricata_logs(log_file_path='/var/log/suricata/eve.json'):
-    with open(log_file_path, 'r') as log_file:
-        log_file.seek(0, os.SEEK_END)
-        while True:
-            line = log_file.readline()
-            if line:
-                try:
-                    log_entry = json.loads(line)
-                    _process_log_entry(log_entry)
-                except json.JSONDecodeError:
-                    logging.error(f"JSONDecodeError: {line.strip()}")
-                    continue
-            else:
-                continue
+sys.path.append('/models')
+from base.utils import setup_logging
+from base.base_model import BaseModel
 
 if __name__ == "__main__":
-    stream_suricata_logs()
+    try:
+        logger = setup_logging()
+        
+        model_dir = '/models/rf'
+        logger.info(f"Setting up model with directory: {model_dir}")
+        
+        model = BaseModel(
+            model_path=f'{model_dir}/random_forest_binary_model.joblib',
+            scaler_path=f'{model_dir}/standard_scaler.joblib',
+            flag_encoder_path=f'{model_dir}/flag_encoder.joblib',
+            service_encoder_path=f'{model_dir}/service_encoder.joblib',
+        )
+        
+        logger.info("Model initialized successfully")
+        logger.info("Starting Suricata log streaming...")
+        
+        model.stream_suricata_logs()
+    except Exception as e:
+        logger.error(f"Main exception: {str(e)}", exc_info=True)
+        raise

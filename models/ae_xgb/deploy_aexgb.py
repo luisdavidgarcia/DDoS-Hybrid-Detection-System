@@ -1,9 +1,14 @@
 import json
 import logging
 import os
-from ..base.base_model import BaseModel
+import sys
 
-filename = 'ae_xgb_binary_model'
+sys.path.append('/models')
+
+from base.base_model import BaseModel
+
+filename = 'ae_xgb/ae_xgb_binary_model'
+os.makedirs(os.path.dirname(f'/models/{filename}_predictions.log'), exist_ok=True)
 
 logging.basicConfig(
     filename=f'{filename}_predictions.log',
@@ -12,13 +17,13 @@ logging.basicConfig(
 )
 
 model = BaseModel(
-    is_autoencoder=True,
+    is_hybrid=True,
     is_ml_model=False,
     model_path=f'{filename}.joblib',
-    encoder_model_path='encoder_model.keras',
-    scaler_path='standard_scaler.joblib',
-    flag_encoder_path='flag_encoder.joblib',
-    service_encoder_path='service_encoder.joblib',
+    encoder_model_path='ae_xgb/encoder_model.keras',
+    scaler_path='ae_xgb/standard_scaler.joblib',
+    flag_encoder_path='ae_xgb/flag_encoder.joblib',
+    service_encoder_path='ae_xgb/service_encoder.joblib',
     batch_size=64
 )
 
@@ -31,7 +36,7 @@ def stream_suricata_logs(log_file_path='/var/log/suricata/eve.json'):
             if line:
                 try:
                     log_entry = json.loads(line)
-                    _process_log_entry(log_entry)
+                    model.process_log_entry(log_entry)
                 except json.JSONDecodeError:
                     logging.error(f"JSONDecodeError: {line.strip()}")
                     continue
