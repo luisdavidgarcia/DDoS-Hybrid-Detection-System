@@ -31,3 +31,9 @@ def setup_logging(base_dir='/models', model_dir='rf', log_filename='random_fores
     logger.info(f"Logging initialized. Writing to: {log_path}")
     
     return logger
+
+def load_config(model_dir):
+    """Load model configuration from JSON file."""
+    config_path = os.path.join(model_dir, 'config.json')
+    with open(config_path, 'r') as f:
+        return json.load(f)
