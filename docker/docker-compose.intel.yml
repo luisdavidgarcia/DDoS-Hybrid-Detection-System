@@ -7,7 +7,7 @@ services:
       shared_net:
         ipv4_address: 172.19.5.2
     volumes:
-      - ./nginx/www:/usr/share/nginx/html
+      - ../nginx/www:/usr/share/nginx/html
   
   suricata:
     image: jasonish/suricata
@@ -18,9 +18,9 @@ services:
     cap_add:
       - NET_ADMIN
     volumes:
-      - ./suricata/suricata.yaml:/etc/suricata/suricata.yaml
-      - ./logs:/var/log/suricata
-      - ./suricata/suricata.rules:/etc/suricata/rules/suricata.rules
+      - ../suricata/suricata.yaml:/etc/suricata/suricata.yaml
+      - ../logs:/var/log/suricata
+      - ../suricata/suricata.rules:/etc/suricata/rules/suricata.rules
     command: /usr/bin/suricata -i eth0 -c /etc/suricata/suricata.yaml
 
   # Attacking containers
@@ -89,9 +89,9 @@ services:
     image: ml_base_image
     container_name: xgboost_model
     volumes:
-      - ./models/xgb:/models/xgb
-      - ./models/base:/models/base
-      - ./logs:/var/log/suricata
+      - ../models/xgb:/models/xgb
+      - ../models/base:/models/base
+      - ../logs:/var/log/suricata
     command: python3 /models/base/deploy.py --model-dir /models/xgb
     networks:
       shared_net:
@@ -101,9 +101,9 @@ services:
     image: ml_base_image
     container_name: random_forest_model
     volumes:
-      - ./models/rf:/models/rf
-      - ./models/base:/models/base
-      - ./logs:/var/log/suricata
+      - ../models/rf:/models/rf
+      - ../models/base:/models/base
+      - ../logs:/var/log/suricata
     command: python3 /models/base/deploy.py --model-dir /models/rf
     networks:
       shared_net:
@@ -113,9 +113,9 @@ services:
     image: ml_base_image
     container_name: decision_tree_model
     volumes:
-      - ./models/dt:/models/dt
-      - ./models/base:/models/base
-      - ./logs:/var/log/suricata
+      - ../models/dt:/models/dt
+      - ../models/base:/models/base
+      - ../logs:/var/log/suricata
     command: python3 /models/base/deploy.py --model-dir /models/dt
     networks:
       shared_net:
@@ -125,9 +125,9 @@ services:
     image: ml_base_image
     container_name: logistic_regression_model
     volumes:
-      - ./models/lr:/models/lr
-      - ./models/base:/models/base
-      - ./logs:/var/log/suricata
+      - ../models/lr:/models/lr
+      - ../models/base:/models/base
+      - ../logs:/var/log/suricata
     command: python3 /models/base/deploy.py --model-dir /models/lr
     networks:
       shared_net:
@@ -138,9 +138,9 @@ services:
     image: dl_base_image_intel
     container_name: ae_xgboost_model
     volumes:
-      - ./models/ae_xgb:/models/ae_xgb
-      - ./models/base:/models/base
-      - ./logs:/var/log/suricata
+      - ../models/ae_xgb:/models/ae_xgb
+      - ../models/base:/models/base
+      - ../logs:/var/log/suricata
     command: python3 /models/base/deploy.py --model-dir /models/ae_xgb
     networks:
       shared_net:
@@ -150,9 +150,9 @@ services:
     image: dl_base_image_intel
     container_name: cnn_lstm_model
     volumes:
-      - ./models/cnn_lstm:/models/cnn_lstm
-      - ./models/base:/models/base
-      - ./logs:/var/log/suricata
+      - ../models/cnn_lstm:/models/cnn_lstm
+      - ../models/base:/models/base
+      - ../logs:/var/log/suricata
     command: python3 /models/base/deploy.py --model-dir /models/cnn_lstm
     networks:
       shared_net:
