@@ -1,11 +1,9 @@
 #!/bin/bash
 
-# Function to check if a Docker image exists
 function check_and_build_image {
     IMAGE_NAME=$1
     DOCKERFILE=$2
 
-    # Check if the image exists
     if [[ "$(docker images -q $IMAGE_NAME 2> /dev/null)" == "" ]]; then
         echo "Docker image $IMAGE_NAME does not exist. Building it..."
         docker build -t $IMAGE_NAME -f $DOCKERFILE .
@@ -17,10 +15,8 @@ function check_and_build_image {
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 STATS_LOG="logs/docker_stats_$TIMESTAMP.csv"
 
-# Detect system architecture
 ARCH=$(uname -m)
 
-# Determine the compose file based on architecture and scenario
 if [ "$ARCH" = "x86_64" ]; then
     COMPOSE_FILE="docker-compose.intel.yml"
     ML_DOCKERFILE="Dockerfile.ml_base"
@@ -34,11 +30,9 @@ else
     exit 1
 fi
 
-# Check and build images if they don't exist
 check_and_build_image "ml_base_image" "$ML_DOCKERFILE"
 check_and_build_image "dl_base_image" "$DL_DOCKERFILE"
 
-# Check that the NGINX directory exists
 if [ ! -d "nginx" ]; then
     sh ./scripts/generate_files.sh 
 fi
@@ -49,25 +43,21 @@ echo "Using Docker Compose file: $COMPOSE_FILE"
 echo "Starting docker-compose and building containers..."
 docker compose -f $COMPOSE_FILE up --build -d
 
-# Create the CSV file with headers
 echo "Timestamp,Container Name,CPU Usage (%),Memory Usage,Net I/O" > $STATS_LOG
 
-# Function to collect Docker stats
 function collect_stats {
     docker stats --no-stream --format \
     "{{.Name}},{{.CPUPerc}},{{.MemUsage}},{{.NetIO}}" | \
     while IFS= read -r line; do
-        # Capture a unique timestamp for each container's stats entry
         TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
         echo "$TIMESTAMP,$line" >> $STATS_LOG
     done
 }
 
-SIMULATION_TIME=140  # 10 minutes
-INTERVAL=5  # Collect stats every 5 seconds
+SIMULATION_TIME=140 # SECONDS
+INTERVAL=5 # SECONDS
 ITERATIONS=$((SIMULATION_TIME / INTERVAL))
 
-# Loop to collect stats
 for i in $(seq 1 $ITERATIONS); do
     collect_stats
     sleep $INTERVAL
