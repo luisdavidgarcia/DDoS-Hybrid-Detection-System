@@ -6,7 +6,7 @@ function check_and_build_image {
 
     if [[ "$(docker images -q $IMAGE_NAME 2> /dev/null)" == "" ]]; then
         echo "Docker image $IMAGE_NAME does not exist. Building it..."
-        docker build -t $IMAGE_NAME -f $DOCKERFILE .
+        docker build -t $IMAGE_NAME -f "$DOCKERFILE" .
     else
         echo "Docker image $IMAGE_NAME already exists."
     fi
@@ -18,13 +18,13 @@ STATS_LOG="logs/docker_stats_$TIMESTAMP.csv"
 ARCH=$(uname -m)
 
 if [ "$ARCH" = "x86_64" ]; then
-    COMPOSE_FILE="docker-compose.intel.yml"
-    ML_DOCKERFILE="Dockerfile.ml_base"
+    COMPOSE_FILE="docker/docker-compose.intel.yml"
+    ML_DOCKERFILE="docker/Dockerfile.ml_base"
     DL_DOCKERFILE="Dockerfile.dl_base_intel"
 elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
-    COMPOSE_FILE="docker-compose.arm.yml"
-    ML_DOCKERFILE="Dockerfile.ml_base"
-    DL_DOCKERFILE="Dockerfile.dl_base"
+    COMPOSE_FILE="docker/docker-compose.arm.yml"
+    ML_DOCKERFILE="docker/Dockerfile.ml_base"
+    DL_DOCKERFILE="docker/Dockerfile.dl_base"
 else
     echo "Unsupported architecture: $ARCH"
     exit 1
@@ -41,16 +41,16 @@ echo "Detected architecture: $ARCH"
 echo "Using Docker Compose file: $COMPOSE_FILE"
 
 echo "Starting docker-compose and building containers..."
-docker compose -f $COMPOSE_FILE up --build -d
+docker compose -f "$COMPOSE_FILE" up --build -d
 
-echo "Timestamp,Container Name,CPU Usage (%),Memory Usage,Net I/O" > $STATS_LOG
+echo "Timestamp,Container Name,CPU Usage (%),Memory Usage,Net I/O" > "$STATS_LOG"
 
 function collect_stats {
     docker stats --no-stream --format \
     "{{.Name}},{{.CPUPerc}},{{.MemUsage}},{{.NetIO}}" | \
     while IFS= read -r line; do
         TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-        echo "$TIMESTAMP,$line" >> $STATS_LOG
+        echo "$TIMESTAMP,$line" >> "$STATS_LOG"
     done
 }
 
@@ -64,6 +64,6 @@ for i in $(seq 1 $ITERATIONS); do
 done
 
 echo "Stopping docker containers after $SIMULATION_TIME seconds of monitoring..."
-docker compose -f $COMPOSE_FILE down
+docker compose -f "$COMPOSE_FILE" down
 
 echo "Docker container monitoring completed. Stats saved in $STATS_LOG."
