@@ -3,7 +3,11 @@ import logging
 import os
 from base.base_model import BaseModel
 
-def setup_logging(base_dir='/models', model_dir='rf', log_filename='random_forest_predictions.log'):
+def setup_logging(
+    base_dir='/models', 
+    model_dir='rf', 
+    log_filename='random_forest_predictions.log'
+):
     """Set up logging configuration and create necessary directories"""
     log_dir = os.path.join(base_dir, model_dir)
     log_path = os.path.join(log_dir, log_filename)

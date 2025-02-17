@@ -51,7 +51,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     try:
-        # Use provided model_dir or fall back to script directory
         model_dir = args.model_dir or os.path.dirname(os.path.abspath(__file__))
         deploy_model(model_dir)
     except Exception as e:
