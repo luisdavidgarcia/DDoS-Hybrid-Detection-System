@@ -83,7 +83,8 @@ complex network setups.
 
 ### Model Training and Evaluation
 
-1. For pre-trained model evaluation (all supported models), ensure your data follows the required format.
+1. For pre-trained model evaluation (all supported models), ensure your data 
+follows the required format.
 
 2. Available training notebooks in the `notebooks/` directory:
 
@@ -99,11 +100,15 @@ complex network setups.
 
 ### Important Note on Datasets
 
-While this project includes analyses using NSL-KDD and CICIDS2018 datasets for comparative purposes with existing literature, we strongly recommend:
+While this project includes analyses using NSL-KDD and CICIDS2018 datasets for 
+comparative purposes with existing literature, we strongly recommend:
 
-- **Generate Your Own Dataset**: Use the testbed to create datasets that match your specific network conditions and attack patterns
-- **Real-World Training**: Train models on traffic data from your actual network environment
-- **Custom Validation**: Develop validation procedures specific to your deployment scenario
+- **Generate Your Own Dataset**: Use the testbed to create datasets that match 
+   your specific network conditions and attack patterns
+- **Real-World Training**: Train models on traffic data from your actual network 
+   environment
+- **Custom Validation**: Develop validation procedures specific to your 
+   deployment scenario
 
 The included datasets (NSL-KDD and CICIDS2018) should be viewed as reference 
 implementations rather than production-ready solutions. For real-world 
@@ -111,9 +116,9 @@ applications, custom dataset generation using the testbed is strongly recommende
 
 ### Models Directory
 
-The `models/` directory contains model-specific subdirectories that are shared with 
-Docker containers. Each model (ae_xgb, cnn_lstm, dt, lr, rf, xgb) has its own 
-directory where you should place:
+The `models/` directory contains model-specific subdirectories that are shared 
+with Docker containers. Each model (ae_xgb, cnn_lstm, dt, lr, rf, xgb) has its 
+own directory where you should place:
 
 - Model files specific to that algorithm
 - Required encoders and preprocessors
