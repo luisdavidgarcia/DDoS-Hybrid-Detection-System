@@ -7,9 +7,8 @@ services:
       shared_net:
         ipv4_address: 172.19.5.2
     volumes:
-      - ./nginx/www:/usr/share/nginx/html
+      - ../nginx/www:/usr/share/nginx/html
   
-  # Network monitoring containers
   suricata:
     image: jasonish/suricata
     container_name: suricata
@@ -19,16 +18,17 @@ services:
     cap_add:
       - NET_ADMIN
     volumes:
-      - ./suricata/suricata.yaml:/etc/suricata/suricata.yaml
-      - ./logs:/var/log/suricata
-      - ./suricata/suricata.rules:/etc/suricata/rules/suricata.rules
+      - ../suricata/suricata.yaml:/etc/suricata/suricata.yaml
+      - ../logs:/var/log/suricata
+      - ../suricata/suricata.rules:/etc/suricata/rules/suricata.rules
     command: /usr/bin/suricata -i eth0 -c /etc/suricata/suricata.yaml
 
   # Attacking containers
   attacker_syn:
     image: debian:bullseye-slim
     container_name: attacker_syn
-    command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 -S -p 80 -i 1 172.19.5.2; done"
+    command: sh -c "apt-get update && apt-get install -y hping3 && while true; \
+      do hping3 -S -p 80 -i 1 172.19.5.2; done"
     networks:
       shared_net:
         ipv4_address: 172.19.5.3
@@ -36,7 +36,8 @@ services:
   attacker_udp:
     image: debian:bullseye-slim
     container_name: attacker_udp
-    command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --udp -p 53 -i 1 172.19.5.2; done"
+    command: sh -c "apt-get update && apt-get install -y hping3 && while true; \
+      do hping3 --udp -p 53 -i 1 172.19.5.2; done"
     networks:
       shared_net:
         ipv4_address: 172.19.5.4
@@ -44,7 +45,8 @@ services:
   attacker_efs:
     image: debian:bullseye-slim
     container_name: attacker_efs
-    command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --rst --destport 520 -i 1 172.19.5.2; done"
+    command: sh -c "apt-get update && apt-get install -y hping3 && while true; \
+      do hping3 --rst --destport 520 -i 1 172.19.5.2; done"
     networks:
       shared_net:
         ipv4_address: 172.19.5.5
@@ -52,7 +54,8 @@ services:
   attacker_ftp_data:
     image: debian:bullseye-slim
     container_name: attacker_ftp_data
-    command: sh -c "apt-get update && apt-get install -y hping3 && while true; do hping3 --rst --destport 20 -i 1 172.19.5.2; done"
+    command: sh -c "apt-get update && apt-get install -y hping3 && while true; \
+      do hping3 --rst --destport 20 -i 1 172.19.5.2; done"
     networks:
       shared_net:
         ipv4_address: 172.19.5.6
@@ -61,7 +64,8 @@ services:
   http_client:
     image: alpine
     container_name: http_client
-    command: sh -c "while true; do wget -qO- http://172.19.5.2/small.html; sleep 2; wget -qO- http://172.19.5.2/medium.html; sleep 2; done"
+    command: sh -c "while true; do wget -qO- http://172.19.5.2/small.html; \
+      sleep 2; wget -qO- http://172.19.5.2/medium.html; sleep 2; done"
     networks:
       shared_net:
         ipv4_address: 172.19.5.7
@@ -85,9 +89,10 @@ services:
     image: ml_base_image
     container_name: xgboost_model
     volumes:
-      - ./models/xgb:/models
-      - ./logs:/var/log/suricata
-    command: python3 /models/deploy_xgb.py
+      - ../models/xgb:/models/xgb
+      - ../models/base:/models/base
+      - ../logs:/var/log/suricata
+    command: python3 /models/base/deploy.py --model-dir /models/xgb
     networks:
       shared_net:
         ipv4_address: 172.19.5.9
@@ -96,9 +101,10 @@ services:
     image: ml_base_image
     container_name: random_forest_model
     volumes:
-      - ./models/rf:/models
-      - ./logs:/var/log/suricata
-    command: python3 /models/deploy_rf.py
+      - ../models/rf:/models/rf
+      - ../models/base:/models/base
+      - ../logs:/var/log/suricata
+    command: python3 /models/base/deploy.py --model-dir /models/rf
     networks:
       shared_net:
         ipv4_address: 172.19.5.10
@@ -107,9 +113,10 @@ services:
     image: ml_base_image
     container_name: decision_tree_model
     volumes:
-      - ./models/dt:/models
-      - ./logs:/var/log/suricata
-    command: python3 /models/deploy_dt.py
+      - ../models/dt:/models/dt
+      - ../models/base:/models/base
+      - ../logs:/var/log/suricata
+    command: python3 /models/base/deploy.py --model-dir /models/dt
     networks:
       shared_net:
         ipv4_address: 172.19.5.11
@@ -118,9 +125,10 @@ services:
     image: ml_base_image
     container_name: logistic_regression_model
     volumes:
-      - ./models/lr:/models
-      - ./logs:/var/log/suricata
-    command: python3 /models/deploy_lr.py
+      - ../models/lr:/models/lr
+      - ../models/base:/models/base
+      - ../logs:/var/log/suricata
+    command: python3 /models/base/deploy.py --model-dir /models/lr
     networks:
       shared_net:
         ipv4_address: 172.19.5.12
@@ -130,9 +138,10 @@ services:
     image: dl_base_image_intel
     container_name: ae_xgboost_model
     volumes:
-      - ./models/ae_xgb:/models
-      - ./logs:/var/log/suricata
-    command: python3 /models/deploy_aexgb.py
+      - ../models/ae_xgb:/models/ae_xgb
+      - ../models/base:/models/base
+      - ../logs:/var/log/suricata
+    command: python3 /models/base/deploy.py --model-dir /models/ae_xgb
     networks:
       shared_net:
         ipv4_address: 172.19.5.13
@@ -141,13 +150,15 @@ services:
     image: dl_base_image_intel
     container_name: cnn_lstm_model
     volumes:
-      - ./models/cnn_lstm:/models
-      - ./logs:/var/log/suricata
-    command: python3 /models/deploy_cnn_lstm.py
+      - ../models/cnn_lstm:/models/cnn_lstm
+      - ../models/base:/models/base
+      - ../logs:/var/log/suricata
+    command: python3 /models/base/deploy.py --model-dir /models/cnn_lstm
     networks:
       shared_net:
         ipv4_address: 172.19.5.14
 
+# Network configuration
 networks:
   shared_net:
     driver: bridge
