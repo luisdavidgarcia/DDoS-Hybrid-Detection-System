@@ -156,8 +156,8 @@ using the pre-configured machine learning models.
 2. Model predicitions and features will be saved in logs respective to the 
    model directory in `models/` directory.
 
-4. The `utils` directory contains scripts for analyzing the logs and generating 
-   reports.
+4. The `analysis/` directory contains scripts for analyzing the logs and 
+   generating reports.
 
 5. Start with the one you need and you only need to input the file paths
    for the logs you want to analyze.
