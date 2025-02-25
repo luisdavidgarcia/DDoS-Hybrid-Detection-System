@@ -1,14 +1,13 @@
 %YAML 1.1
 ---
 
-# General configuration
 vars:
   # Define home net to be the internal subnet
   address-groups:
     HOME_NET: "[172.19.5.0/24]"
     EXTERNAL_NET: "$HOME_NET"
 
-default-log-dir: /var/log/suricata  # Where the logs will be stored
+default-log-dir: /var/log/suricata
 
 # Capture interface - using AF_PACKET for live capture
 af-packet:
@@ -38,9 +37,9 @@ outputs:
       enabled: yes
       filetype: regular
       filename: /var/log/suricata/eve.json
-      community-id: no  # Disable community ID if it's not needed
+      community-id: no
       types:
-        - drop  # Log dropped packets only (useful to catch SYN flood drops)
+        - drop  # (useful to catch SYN flood drops)
         - flow:  # Log only essential fields in the flow
             fields:
               - flow_id
