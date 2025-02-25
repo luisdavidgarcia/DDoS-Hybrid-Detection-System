@@ -180,8 +180,8 @@ cython_debug/
 checkpoint
 *.index
 logs/
-*.json
 *.html
+eve.json
 
 
 ### Django ###

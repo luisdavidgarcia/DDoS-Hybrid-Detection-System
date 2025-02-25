@@ -1,0 +1,12 @@
+{
+    "model_type": "ae_xgb",
+    "is_ml_model": false,
+    "is_hybrid": true,
+    "files": {
+        "model": "ae_xgb_binary_model.joblib",
+        "encoder": "encoder_model.keras",
+        "scaler": "standard_scaler.joblib",
+        "flag_encoder": "flag_encoder.joblib",
+        "service_encoder": "service_encoder.joblib"
+    }
+}

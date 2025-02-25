@@ -1,0 +1,9 @@
+{
+    "model_type": "lr",
+    "files": {
+        "model": "logistic_regression_binary_model.joblib",
+        "scaler": "standard_scaler.joblib",
+        "flag_encoder": "flag_encoder.joblib",
+        "service_encoder": "service_encoder.joblib"
+    }
+}

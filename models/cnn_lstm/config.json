@@ -1,0 +1,10 @@
+{
+    "model_type": "cnn_lstm",
+    "is_ml_model": false,
+    "files": {
+        "model": "cnn_lstm_binary_model.keras",
+        "scaler": "standard_scaler.joblib",
+        "flag_encoder": "flag_encoder.joblib",
+        "service_encoder": "service_encoder.joblib"
+    }
+}
