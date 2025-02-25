@@ -147,7 +147,7 @@ services:
 
   # Deep Learning Models using dl_base_image
   ae_xgboost_model:
-    image: dl_base_image
+    image: dl_base_image_arm
     platform: linux/arm64
     container_name: ae_xgboost_model
     volumes:
@@ -160,7 +160,7 @@ services:
         ipv4_address: 172.19.5.13
 
   cnn_lstm_model:
-    image: dl_base_image
+    image: dl_base_image_arm
     platform: linux/arm64
     container_name: cnn_lstm_model
     volumes:

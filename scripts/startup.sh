@@ -19,19 +19,22 @@ ARCH=$(uname -m)
 
 if [ "$ARCH" = "x86_64" ]; then
     COMPOSE_FILE="docker/docker-compose.intel.yml"
-    ML_DOCKERFILE="docker/Dockerfile.ml_base"
     DL_DOCKERFILE="Dockerfile.dl_base_intel"
+    DL_IMAGE_NAME="dl_base_image_intel"
 elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
     COMPOSE_FILE="docker/docker-compose.arm.yml"
-    ML_DOCKERFILE="docker/Dockerfile.ml_base"
-    DL_DOCKERFILE="docker/Dockerfile.dl_base"
+    DL_DOCKERFILE="docker/Dockerfile.dl_base_arm"
+    DL_IMAGE_NAME="dl_base_image_arm"
 else
     echo "Unsupported architecture: $ARCH"
     exit 1
 fi
 
-check_and_build_image "ml_base_image" "$ML_DOCKERFILE"
-check_and_build_image "dl_base_image" "$DL_DOCKERFILE"
+ML_IMAGE_NAME="ml_base_image"
+ML_DOCKERFILE="docker/Dockerfile.ml_base"
+
+check_and_build_image "$ML_IMAGE_NAME" "$ML_DOCKERFILE"
+check_and_build_image "$DL_IMAGE_NAME" "$DL_DOCKERFILE"
 
 if [ ! -d "nginx" ]; then
     sh ./scripts/generate_files.sh 
