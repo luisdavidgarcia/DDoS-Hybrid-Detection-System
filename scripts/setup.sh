@@ -24,8 +24,5 @@ echo "Installing additional libraries (numpy, pandas, matplotlib, etc.)..."
 conda install numpy pandas matplotlib imbalanced-learn psutil \
     seaborn jupyter -y
 
-echo -e "\nCreating the directory for Nginx files..."
-sh ./scripts/generate_files.sh
-
 echo -e "\nConda environment '$ENV_NAME' has been set up with all dependencies."
 echo "Activate the environment using: conda activate $ENV_NAME"

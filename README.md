@@ -56,10 +56,18 @@ complex network setups.
 
 ## Prerequisites
 
-**NOTE:** You need Anaconda for this environment; otherwise, it will not work.
+**NOTE:** Anaconda is highly recommended for this environment, especially for 
+running the notebooks and training models. While alternative Python virtual 
+environments (like `venv`) *might* work, they have not been thoroughly tested. 
+Anaconda ensures consistent dependency management and is strongly suggested for 
+a smooth experience.
 
 - Anaconda: [Download and install Anaconda](https://www.anaconda.com/products/individual)
+
 - Docker: [Download and install Docker](https://www.docker.com/)
+
+**Important:** Anaconda is primarily required for the interactive notebooks and 
+model training processes. It is not necessary for running the testbed environment.
 
 ## Setting up
 
@@ -83,14 +91,24 @@ complex network setups.
 
 ### Model Training and Evaluation
 
+### Model Training and Evaluation
+
 1. For pre-trained model evaluation (all supported models), ensure your data 
 follows the required format.
 
 2. Available training notebooks in the `notebooks/` directory:
 
-   - `results_nslk-kdd_binary.ipynb`: Binary classification comparative analysis
-   - `results_cicids2018.ipynb`: Analysis of CICIDS2018 dataset metrics
-   - `results_nslk-kdd_multiclass.ipynb`: Experimental multiclass DDoS detection
+   - **`results_nslk-kdd_binary.ipynb`**: **Binary NSL-KDD Notebook (Use this 
+   one for training and evaluation).** This notebook contains a comprehensive 
+   binary classification comparative analysis. All analysis scripts within the 
+   `analysis/` directory are designed to align with the binary classification 
+   results produced by this notebook.
+
+   - `results_cicids2018.ipynb`: Analysis of CICIDS2018 dataset metrics. This 
+   notebook is primarily intended for investigative purposes.
+
+   - `results_nslk-kdd_multiclass.ipynb`: Experimental multiclass DDoS detection. 
+   This notebook is primarily intended for investigative purposes.
 
    Each notebook includes:
    - Data preprocessing steps

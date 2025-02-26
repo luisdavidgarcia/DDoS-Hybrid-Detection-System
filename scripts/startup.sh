@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo -e "\nCreating the directory for Nginx files..."
+sh ./scripts/generate_files.sh
+
 function check_and_build_image {
     IMAGE_NAME=$1
     DOCKERFILE=$2
