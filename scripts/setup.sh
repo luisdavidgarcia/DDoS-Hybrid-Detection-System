@@ -3,7 +3,7 @@
 set -e
 
 ENV_NAME="docker-ddos-testbed"
-PYTHON_VERSION="3.10"
+PYTHON_VERSION="3.11"
 
 echo "Creating the conda environment: $ENV_NAME with Python $PYTHON_VERSION"
 conda create --name "$ENV_NAME" python="$PYTHON_VERSION" -y
@@ -15,17 +15,17 @@ echo "Activating the environment: $ENV_NAME"
 conda activate "$ENV_NAME"
 
 echo "Installing TensorFlow..."
-conda install -c conda-forge tensorflow -y
+conda install tensorflow -y
 
 echo "Installing scikit-learn and XGBoost..."
-conda install -c conda-forge scikit-learn xgboost -y
+conda install scikit-learn xgboost -y
 
 echo "Installing additional libraries (numpy, pandas, matplotlib, etc.)..."
-conda install -c conda-forge numpy pandas matplotlib imbalanced-learn psutil \
+conda install numpy pandas matplotlib imbalanced-learn psutil \
     seaborn jupyter -y
 
-echo "Conda environment '$ENV_NAME' has been set up with all dependencies."
-echo "Activate the environment using: conda activate $ENV_NAME"
-
-echo "Creating the directory for Nginx files..."
+echo -e "\nCreating the directory for Nginx files..."
 sh ./scripts/generate_files.sh
+
+echo -e "\nConda environment '$ENV_NAME' has been set up with all dependencies."
+echo "Activate the environment using: conda activate $ENV_NAME"
