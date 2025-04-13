@@ -12,21 +12,6 @@ services:
       - ../nginx/status.conf:/etc/nginx/conf.d/status.conf
     depends_on:
       - lgtm_stack
-  
-  # suricata:
-  #   image: jasonish/suricata
-  #   platform: linux/arm64
-  #   container_name: suricata
-  #   depends_on:
-  #     - nginx_web
-  #   network_mode: "container:nginx_web"
-  #   cap_add:
-  #     - NET_ADMIN
-  #   volumes:
-  #     - ../suricata/suricata.yaml:/etc/suricata/suricata.yaml
-  #     - ../logs:/var/log/suricata
-  #     - ../suricata/suricata.rules:/etc/suricata/rules/suricata.rules
-  #   command: /usr/bin/suricata -i eth0 -c /etc/suricata/suricata.yaml
 
   otel_collector:
     image: otel/opentelemetry-collector-contrib:latest
@@ -51,46 +36,33 @@ services:
       - 4317:4317
       - 4318:4318
 
-  # Attacking containers
-  attacker_syn:
+    # Attacking containers using Apache Benchmark
+  attacker_ab_1:
     image: debian:bullseye-slim
     platform: linux/arm64
-    container_name: attacker_syn
-    command: sh -c "apt-get update && apt-get install -y hping3 && while true; \
-      do hping3 -S -p 80 --flood 172.19.5.2; done"
+    container_name: attacker_ab_1
+    command: sh -c "apt-get update && apt-get install -y apache2-utils && while true; do ab -n 1000 -c 100 http://172.19.5.2/; sleep 1; done"
     networks:
       shared_net:
         ipv4_address: 172.19.5.3
 
-  attacker_udp:
+  attacker_ab_2:
     image: debian:bullseye-slim
     platform: linux/arm64
-    container_name: attacker_udp
-    command: sh -c "apt-get update && apt-get install -y hping3 && while true; \
-      do hping3 --udp -p 53 --flood 172.19.5.2; done"
+    container_name: attacker_ab_2
+    command: sh -c "apt-get update && apt-get install -y apache2-utils && while true; do ab -n 1500 -c 150 http://172.19.5.2/; sleep 2; done"
     networks:
       shared_net:
         ipv4_address: 172.19.5.4
 
-  attacker_efs:
+  attacker_ab_3:
     image: debian:bullseye-slim
     platform: linux/arm64
-    container_name: attacker_efs
-    command: sh -c "apt-get update && apt-get install -y hping3 && while true; \
-      do hping3 --rst --destport 520 -flood 1 172.19.5.2; done"
+    container_name: attacker_ab_3
+    command: sh -c "apt-get update && apt-get install -y apache2-utils && while true; do ab -n 800 -c 80 http://172.19.5.2/index.html; sleep 1.5; done"
     networks:
       shared_net:
         ipv4_address: 172.19.5.5
-
-  # attacker_ftp_data:
-  #   image: debian:bullseye-slim
-  #   platform: linux/arm64
-  #   container_name: attacker_ftp_data
-  #   command: sh -c "apt-get update && apt-get install -y hping3 && while true; \
-  #     do hping3 --rst --destport 20 -i 1 172.19.5.2; done"
-  #   networks:
-  #     shared_net:
-  #       ipv4_address: 172.19.5.6
 
   # Legitimate traffic containers
   http_client:
@@ -117,86 +89,6 @@ services:
     networks:
       shared_net:
         ipv4_address: 172.19.5.8
-
-  # Traditional ML Models using ml_base_image
-  # xgboost_model:
-  #   image: ml_base_image
-  #   platform: linux/arm64
-  #   container_name: xgboost_model
-  #   volumes:
-  #     - ../models/xgb:/models/xgb
-  #     - ../models/base:/models/base
-  #     - ../logs:/var/log/suricata
-  #   command: python3 /models/base/deploy.py --model-dir /models/xgb
-  #   networks:
-  #     shared_net:
-  #       ipv4_address: 172.19.5.9
-
-  # random_forest_model:
-  #   image: ml_base_image
-  #   platform: linux/arm64
-  #   container_name: random_forest_model
-  #   volumes:
-  #     - ../models/rf:/models/rf
-  #     - ../models/base:/models/base
-  #     - ../logs:/var/log/suricata
-  #   command: python3 /models/base/deploy.py --model-dir /models/rf
-  #   networks:
-  #     shared_net:
-  #       ipv4_address: 172.19.5.10
-
-  # decision_tree_model:
-  #   image: ml_base_image
-  #   platform: linux/arm64
-  #   container_name: decision_tree_model
-  #   volumes:
-  #     - ../models/dt:/models/dt
-  #     - ../models/base:/models/base
-  #     - ../logs:/var/log/suricata
-  #   command: python3 /models/base/deploy.py --model-dir /models/dt
-  #   networks:
-  #     shared_net:
-  #       ipv4_address: 172.19.5.11
-
-  # logistic_regression_model:
-  #   image: ml_base_image
-  #   platform: linux/arm64
-  #   container_name: logistic_regression_model
-  #   volumes:
-  #     - ../models/lr:/models/lr
-  #     - ../models/base:/models/base
-  #     - ../logs:/var/log/suricata
-  #   command: python3 /models/base/deploy.py --model-dir /models/lr
-  #   networks:
-  #     shared_net:
-  #       ipv4_address: 172.19.5.12
-
-  # Deep Learning Models using dl_base_image
-  # ae_xgboost_model:
-  #   image: dl_base_image_arm
-  #   platform: linux/arm64
-  #   container_name: ae_xgboost_model
-  #   volumes:
-  #     - ../models/ae_xgb:/models/ae_xgb
-  #     - ../models/base:/models/base
-  #     - ../logs:/var/log/suricata
-  #   command: python3 /models/base/deploy.py --model-dir /models/ae_xgb
-  #   networks:
-  #     shared_net:
-  #       ipv4_address: 172.19.5.13
-
-  # cnn_lstm_model:
-  #   image: dl_base_image_arm
-  #   platform: linux/arm64
-  #   container_name: cnn_lstm_model
-  #   volumes:
-  #     - ../models/cnn_lstm:/models/cnn_lstm
-  #     - ../models/base:/models/base
-  #     - ../logs:/var/log/suricata
-  #   command: python3 /models/base/deploy.py --model-dir /models/cnn_lstm
-  #   networks:
-  #     shared_net:
-  #       ipv4_address: 172.19.5.14
 
 # Network configuration
 networks:
