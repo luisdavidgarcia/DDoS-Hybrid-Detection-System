@@ -1,0 +1,99 @@
+services:
+  # Web server and network monitoring containers
+  nginx_web:
+    image: nginx:latest
+    platform: linux/arm64
+    container_name: nginx_web
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.2
+    volumes:
+      - ../nginx/www:/usr/share/nginx/html
+      - ../nginx/status.conf:/etc/nginx/conf.d/status.conf
+    depends_on:
+      - lgtm_stack
+
+  otel_collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    platform: linux/arm64
+    container_name: otel_collector
+    volumes:
+      - ../otel/config.yaml:/etc/otelcol-contrib/config.yaml
+    network_mode: "container:nginx_web"
+    depends_on:
+      - nginx_web
+      - lgtm_stack
+  
+  lgtm_stack:
+    image: grafana/otel-lgtm
+    platform: linux/arm64
+    container_name: lgtm
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.15
+    ports: 
+      - 3000:3000
+      - 4317:4317
+      - 4318:4318
+
+    # Attacking containers using Apache Benchmark
+  attacker_ab_1:
+    image: debian:bullseye-slim
+    platform: linux/arm64
+    container_name: attacker_ab_1
+    command: sh -c "apt-get update && apt-get install -y apache2-utils && while true; do ab -n 1000 -c 100 http://172.19.5.2/; sleep 1; done"
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.3
+
+  attacker_ab_2:
+    image: debian:bullseye-slim
+    platform: linux/arm64
+    container_name: attacker_ab_2
+    command: sh -c "apt-get update && apt-get install -y apache2-utils && while true; do ab -n 1500 -c 150 http://172.19.5.2/; sleep 2; done"
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.4
+
+  attacker_ab_3:
+    image: debian:bullseye-slim
+    platform: linux/arm64
+    container_name: attacker_ab_3
+    command: sh -c "apt-get update && apt-get install -y apache2-utils && while true; do ab -n 800 -c 80 http://172.19.5.2/index.html; sleep 1.5; done"
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.5
+
+  # Legitimate traffic containers
+  http_client:
+    image: alpine
+    platform: linux/arm64
+    container_name: http_client
+    command: sh -c "while true; do wget -qO- http://172.19.5.2/small.html; \
+      sleep 2; wget -qO- http://172.19.5.2/medium.html; sleep 2; done"
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.7
+
+  curl_client:
+    image: alpine
+    platform: linux/arm64
+    container_name: curl_client
+    command: >
+      sh -c "
+        apk add --no-cache curl && 
+        while true; do
+          curl -s http://172.19.5.2
+          sleep 2
+        done"
+    networks:
+      shared_net:
+        ipv4_address: 172.19.5.8
+
+# Network configuration
+networks:
+  shared_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.19.5.0/24
