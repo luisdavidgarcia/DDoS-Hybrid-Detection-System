@@ -196,3 +196,13 @@ built without errors.
 - **Model Prediction Errors:** Ensure that the dataset provided is correctly 
 formatted and compatible with the pre-trained models.
 
+### Leveraging Apache Benchmark 
+
+A new docker compose file: `docker-compose.arm.ab.yml` is included, 
+which significantly leads to the `nginx_web` container having CPU
+usage of 100\% or more. 
+
+This is due to the fact that the `ab`(apache benchmark) tool is used 
+to generate a large amount of traffic to the `nginx_web` container. 
+This is a great way to test the performance of the DDoS detection 
+system in a controlled environment.
