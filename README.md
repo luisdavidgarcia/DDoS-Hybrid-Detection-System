@@ -1,8 +1,28 @@
 # Real-Time DDoS Detection Using a Docker-Based Machine Learning Testbed
 
-**Status Update:** Currently under review for publication at ISICN 2025
+**Status Update 🎉:** Published at 2025 International Symposium on Intelligent Computing and Networking (ISICN) 2025
 
-If you use this work in your research, please cite:
+If you want to use these findings, please use this citation for your research paper. (NOTE: will get DOI soon)
+
+```bibtex
+@inproceedings{garcia2025realtime,
+  author    = {Luis David Garcia and Franz J. Kurfess and Dongfeng Fang},
+  title     = {Real-Time DDoS Detection Using a Docker-Based Machine Learning Testbed},
+  booktitle = {Proceedings of the 2025 International Symposium on Intelligent Computing and Networking (ISICN 2025)},
+  year      = {2025},
+  publisher = {Springer},
+  doi       = {10.1007/xxxxxx},  % Replace with actual DOI
+  url       = {https://link.springer.com/xxxxx}  % Replace with actual Springer link
+}
+```
+
+Luis David Garcia, Franz J. Kurfess, Dongfeng Fang (2025). Real-Time DDoS Detection Using a 
+Docker-Based Machine Learning Testbed. In Proceedings of the 2025 International Symposium 
+on Intelligent Computing and Networking (ISICN 2025).
+
+---
+
+For a more detailed research account, please cite and refer to my thesis paper:
 
 ```bibtex
 @mastersthesis{garcia2024dockerddos,
@@ -15,6 +35,7 @@ If you use this work in your research, please cite:
     school = {California Polytechnic State University, San Luis Obispo}
 }
 ```
+---
 
 ## Introduction
 
@@ -29,6 +50,8 @@ The testbed facilitates:
 - Real-time network traffic analysis
 - Efficient DDoS attack detection
 - Simplified testing and validation procedures
+
+--- 
 
 ## Reference Implementation
 
@@ -54,6 +77,8 @@ and evaluate their performance on detecting DDoS traffic. It is ideal for
 prototyping and research, providing a fast and simple alternative to more 
 complex network setups.
 
+---
+
 ## Prerequisites
 
 **NOTE:** Anaconda is highly recommended for this environment, especially for 
@@ -68,6 +93,8 @@ a smooth experience.
 
 **Important:** Anaconda is primarily required for the interactive notebooks and 
 model training processes. It is not necessary for running the testbed environment.
+
+---
 
 ## Setting up
 
@@ -89,7 +116,7 @@ model training processes. It is not necessary for running the testbed environmen
    conda activate docker-ddos-testbed
    ```
 
-### Model Training and Evaluation
+---
 
 ### Model Training and Evaluation
 
@@ -116,6 +143,8 @@ follows the required format.
    - Evaluation metrics and analysis
    - Detailed documentation of findings
 
+---
+
 ### Important Note on Datasets
 
 While this project includes analyses using NSL-KDD and CICIDS2018 datasets for 
@@ -131,6 +160,8 @@ comparative purposes with existing literature, we strongly recommend:
 The included datasets (NSL-KDD and CICIDS2018) should be viewed as reference 
 implementations rather than production-ready solutions. For real-world 
 applications, custom dataset generation using the testbed is strongly recommended.
+
+---
 
 ### Models Directory
 
@@ -149,6 +180,8 @@ The `models/base/` directory contains:
 
 **Important:** When adding your own models or preprocessors, place them in their 
 respective model directories to ensure proper Docker container access.
+
+---
 
 ## Running the DDoS Testbed
 
@@ -179,6 +212,8 @@ using the pre-configured machine learning models.
 
 5. Start with the one you need and you only need to input the file paths
    for the logs you want to analyze.
+
+---
 
 ## Additional Information
 
