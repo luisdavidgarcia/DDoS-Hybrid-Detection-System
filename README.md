@@ -1,24 +1,30 @@
 # Real-Time DDoS Detection Using a Docker-Based Machine Learning Testbed
 
-**Status Update 🎉:** Published at 2025 International Symposium on Intelligent Computing and Networking (ISICN) 2025
+**Status Update 🎉:** Published at 2025 International Symposium on Intelligent Computing and Networking (ISICN) 2025 and the article is now available on [Springer](https://link.springer.com/chapter/10.1007/978-3-032-09694-4_24).
 
-If you want to use these findings, please use this citation for your research paper. (NOTE: will get DOI soon)
+If you want to use these findings, please use this citation for your research paper.
 
 ```bibtex
-@inproceedings{garcia2025realtime,
-  author    = {Luis David Garcia and Franz J. Kurfess and Dongfeng Fang},
-  title     = {Real-Time DDoS Detection Using a Docker-Based Machine Learning Testbed},
-  booktitle = {Proceedings of the 2025 International Symposium on Intelligent Computing and Networking (ISICN 2025)},
-  year      = {2025},
-  publisher = {Springer},
-  doi       = {10.1007/xxxxxx},  % Replace with actual DOI
-  url       = {https://link.springer.com/xxxxx}  % Replace with actual Springer link
+@InProceedings{10.1007/978-3-032-09694-4_24,
+author="Garcia, Luis David
+and Kurfess, Franz
+and Fang, Dongfeng",
+editor="Rodriguez Martinez, Manuel
+and Lu, Kejie
+and Ye, Feng
+and Qian, Yi",
+title="Real-Time DDoS Detection Using a Docker-Based Machine Learning Testbed",
+booktitle="Proceedings of the International Symposium on Intelligent Computing and Networking 2025",
+year="2026",
+publisher="Springer Nature Switzerland",
+address="Cham",
+pages="304--314",
+abstract="Despite the widespread adoption of machine learning models for distributed denial of service (DDoS) attack detection, researchers face significant barriers in evaluating these models under real-time conditions due to platform specific and complex testbed configurations. Existing works continue to rely on dataset-driven validation, masking critical model performance limitations. To address these gaps, we introduce an open-source, cross-platform Docker testbed for simulating DDoS attack scenarios. Our framework runs seamlessly across Windows, Linux, and macOS on both ARM and x86 architectures. Through testing six pre-trained models in a 10-min DDoS attack simulation, we demonstrate how models performing well on static dataset evaluation (93{\%} accuracy) significantly degrade in real-time environments ({\$}{\$}{\backslash}le {\$}{\$}≤80{\%} accuracy). Our findings provide empirical evidence for the limitations of dataset-based validation while offering researchers an accessible platform for robust model assessment.",
+isbn="978-3-032-09694-4"
 }
 ```
 
-Luis David Garcia, Franz J. Kurfess, Dongfeng Fang (2025). Real-Time DDoS Detection Using a 
-Docker-Based Machine Learning Testbed. In Proceedings of the 2025 International Symposium 
-on Intelligent Computing and Networking (ISICN 2025).
+Garcia, L.D., Kurfess, F., Fang, D. (2026). Real-Time DDoS Detection Using a Docker-Based Machine Learning Testbed. In: Rodriguez Martinez, M., Lu, K., Ye, F., Qian, Y. (eds) Proceedings of the International Symposium on Intelligent Computing and Networking 2025. ISICN 2025. Lecture Notes in Networks and Systems, vol 1698. Springer, Cham. https://doi.org/10.1007/978-3-032-09694-4_24
 
 ---
 
